@@ -1,0 +1,7 @@
+image: debian:bookworm-slim
+
+smoke-test:
+  script:
+    - apt-get update -qq
+    - apt-get install -y -qq gcc-avr avr-libc
+    - avr-gcc --version
