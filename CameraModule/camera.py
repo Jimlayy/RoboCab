@@ -16,8 +16,8 @@ picam2.configure(config)
 picam2.start()
 time.sleep(1)  # let auto exposure and white balance settle
 
-# Optional: lock exposure and white balance so the tape threshold stays stable.
-# picam2.set_controls({"AeEnable": False, "AwbEnable": False})
+#Optional: lock exposure and white balance so the tape threshold stays stable.
+picam2.set_controls({"AeEnable": False, "AwbEnable": False})
 
 
 def process(frame):
