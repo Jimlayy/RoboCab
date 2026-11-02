@@ -24,17 +24,29 @@ def process(frame):
     """Your calculations go here. Returns a mask to display."""
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     gray = cv2.GaussianBlur(gray, (5, 5), 0)
+    # The functions masks the black and white color and returns two values, the first is ignored
     _, mask = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
-    return mask
+    edges = cv2.Canny(mask,50,150)
+    lines = cv2.HoughLinesP(edges,rho=1,theta=np.pi/180,threshold=40,minLineLength=40,maxLineGap=20)
 
+    return mask, lines
+
+
+def draw_lines(frame,lines):
+     """Draw detected road lines in red on a copy of the frame."""
+    out = frame.copy()
+    if lines is not None:
+        for x1, y1, x2, y2 in lines[:, 0]:
+            cv2.line(out, (x1, y1), (x2, y2), (0, 0, 255), 3)  # BGR: red
+    return out
 
 try:
     while True:
         frame = picam2.capture_array()  # numpy array (HEIGHT, WIDTH, 3), BGR
-        mask = process(frame)
+        mask, lines = process(frame)
 
-        cv2.imshow("camera", frame)
-        cv2.imshow("tape mask", mask)
+        cv2.imshow("camera", draw_lines(frame, lines))
+        #cv2.imshow("tape mask", mask)
         if cv2.waitKey(1) & 0xFF == ord("q"):
             break
 finally:
