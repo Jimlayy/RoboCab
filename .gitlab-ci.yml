@@ -1,0 +1,19 @@
+image: debian:bookworm-slim
+
+stages: [build, test]
+
+before_script:
+  - apt-get update -qq
+  - apt-get install -y -qq make
+
+build-avr:
+  stage: build
+  script:
+    - apt-get install -y -qq gcc-avr avr-libc
+    - make avr
+
+unit-tests:
+  stage: test
+  script:
+    - apt-get install -y -qq gcc libc6-dev
+    - make test
