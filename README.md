@@ -19,6 +19,16 @@ Makefilen hittar nya filer själv. Kod i `Common`, `SteeringModule` och `SensorM
 
 Flera tester är skrivna före koden. `Tests/test_pd.c` visas som `VÄNTAR` tills `pd.c` finns i en `logic`-mapp, och körs sedan automatiskt. Headerfilen bredvid, till exempel `SteeringModule/logic/pd.h`, beskriver vad koden ska göra. Skapa `.c`-filen där och kör `make test` tills allt är grönt. Vill ni ändra ett gränssnitt ändrar ni header och test i samma commit.
 
+### Kameramodulen
+
+Bildbehandlingen ligger i `CameraModule/vision.py` och testas med pytest i `CameraModule/tests/`. `camera.py` startar kameran och använder `vision.py`, så lägg ny bildlogik i `vision.py`. Kör testerna med:
+
+```
+make camera-test
+```
+
+Det kräver Python med OpenCV och pytest, i Ubuntu till exempel `sudo apt install python3-opencv python3-pytest`. Inspelade bilder med facit läggs i `CameraModule/tests/images/`, se README där. I GitLab körs jobbet `camera-tests` bara när något i `CameraModule` eller `.gitlab-ci.yml` har ändrats.
+
 ## Getting started
 
 To make it easy for you to get started with GitLab, here's a list of recommended next steps.
