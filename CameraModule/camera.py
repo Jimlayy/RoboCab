@@ -152,7 +152,11 @@ def draw_lines(frame, lines, distance_left, distance_right):
     cv2.circle(out, DOT_CORDS, 5, (0, 255, 0), cv2.FILLED)
     try:
     # Draw distances
-        cv2.line(out, DOT_CORDS, (DOT_CORDS[0]-distance_left, DOT_CORDS[1]), (255, 0, 0), 3) # BGR: blue
+        cv2.line(out, DOT_CORDS, (DOT_CORDS[0]-distance_left, DOT_CORDS[1]), (255, 0, 0), 2) # BGR: blue
+        cv2.putText(out, str(distance_left), (DOT_CORDS[0] - distance_left // 2, DOT_CORDS[1] + 10))
+
+        cv2.line(out, DOT_CORDS, (DOT_CORDS[0]+distance_right, DOT_CORDS[1]), (255, 0, 0), 2) # BGR: blue
+
     except:
         print("Lines not found")
     return out
