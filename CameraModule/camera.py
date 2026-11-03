@@ -10,6 +10,7 @@ import numpy as np
 from picamera2 import Picamera2
 
 WIDTH, HEIGHT = 640, 480
+DOT_CORDS = (WIDTH//2, 2*HEIGHT//3)
 TUNE = False  # True: show the mask + sliders to tune the values live
 
 # ---- What counts as tape ----
@@ -107,20 +108,52 @@ class LineSmoother:
 
 smoother = LineSmoother()
 
+def x_at_y(line, y):
+    """x where the (infinite) line through (x1, y1)-(x2, y2) crosses height y."""
+    x1, y1, x2, y2 = line
+    if y1 == y2:            # horizontal line: crosses every x or none
+        return None
+    return x1 + (y - y1) * (x2 - x1) / (y2 - y1)
+
+def calcdistance(lines)
+    """Calculate the distance to the left and right line if any"""
+    min_distance_right = 100000
+    min_distance_left = 10000
+
+    for line in lines:
+        x = x_at_y(line, DOT_CORDS[1])
+        distance = DOT_CORDS[0] - x 
+        if distance >= 0:
+            if distance <= min_distance_left:
+                min_distance_left = distance
+        else:
+            distance = distance*-1
+            if distance <= min_distance_right:
+                min_distance_right = distance
+    return min_distance_left, min_distance_right
+
+
 
 def process(frame):
     """Your calculations go here. Returns the mask and the smoothed lines."""
     mask = tape_mask(frame)
     lines = smoother.update(strip_lines(mask))
-    return mask, lines
+    distance_left, distance_right = calcdistance(lines)
+    return mask, lines, distance_left, distance_right
 
 
-def draw_lines(frame, lines):
+def draw_lines(frame, lines, distance_left, distance_right):
     """Draw detected road lines in red on a copy of the frame."""
     out = frame.copy()
     for x1, y1, x2, y2 in lines.reshape(-1, 4).astype(int):
         cv2.line(out, (x1, y1), (x2, y2), (0, 0, 255), 3)  # BGR: red
-    cv2.circle(out, (WIDTH//2, 2*HEIGHT//3), 5, (0, 255, 0), cv2.FILLED)
+
+    # Draw midpint    
+    cv2.circle(out, DOT_CORDS, 5, (0, 255, 0), cv2.FILLED)
+
+    # Draw distances
+    cv2.line(out, DOT_CORDS, (DOT_CORDS[0]-distance_left, DOT_CORDS[1]), (255, 0, 0), 3) # BGR: blue
+
     return out
 
 
@@ -136,10 +169,10 @@ try:
             V_MAX = cv2.getTrackbarPos("V_MAX", "tape mask")
             S_MAX = cv2.getTrackbarPos("S_MAX", "tape mask")
             BH_MIN = cv2.getTrackbarPos("BH_MIN", "tape mask")
-        mask, lines = process(frame)
+        mask, lines, distance_left, distance_right = process(frame)
 
 
-        cv2.imshow("camera", draw_lines(frame, lines))
+        cv2.imshow("camera", draw_lines(frame, lines, distance_left, distance_right))
         if TUNE:
             cv2.imshow("tape mask", mask)
         if cv2.waitKey(1) & 0xFF == ord("q"):
