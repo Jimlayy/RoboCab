@@ -113,9 +113,9 @@ def x_at_y(line, y):
     x1, y1, x2, y2 = line
     if y1 == y2:            # horizontal line: crosses every x or none
         return None
-    return x1 + (y - y1) * (x2 - x1) / (y2 - y1)
+    return int(x1 + (y - y1) * (x2 - x1) / (y2 - y1))
 
-def calcdistance(lines)
+def calcdistance(lines):
     """Calculate the distance to the left and right line if any"""
     min_distance_right = 100000
     min_distance_left = 10000
@@ -150,10 +150,11 @@ def draw_lines(frame, lines, distance_left, distance_right):
 
     # Draw midpint    
     cv2.circle(out, DOT_CORDS, 5, (0, 255, 0), cv2.FILLED)
-
+    try:
     # Draw distances
-    cv2.line(out, DOT_CORDS, (DOT_CORDS[0]-distance_left, DOT_CORDS[1]), (255, 0, 0), 3) # BGR: blue
-
+        cv2.line(out, DOT_CORDS, (DOT_CORDS[0]-distance_left, DOT_CORDS[1]), (255, 0, 0), 3) # BGR: blue
+    except:
+        print("Lines not found")
     return out
 
 
