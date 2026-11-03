@@ -153,7 +153,11 @@ def draw_lines(frame, lines, distance_left, distance_right):
     try:
     # Draw distances
         cv2.line(out, DOT_CORDS, (DOT_CORDS[0]-distance_left, DOT_CORDS[1]), (255, 0, 0), 2) # BGR: blue
-        cv2.putText(out, f"{distance_left:.0f}", (DOT_CORDS[0] - distance_left / 2, DOT_CORDS[1] + 10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 0, 0), 2)
+        if distance_left is not None:
+            x = int(DOT_CORDS[0] - distance_left / 2)
+            y = DOT_CORDS[1] + 25
+            cv2.putText(out, f"{distance_left:.0f}", (x, y),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 0, 0), 2)
 
         cv2.line(out, DOT_CORDS, (DOT_CORDS[0]+distance_right, DOT_CORDS[1]), (255, 0, 0), 2) # BGR: blue
 
