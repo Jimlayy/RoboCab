@@ -151,16 +151,20 @@ def draw_lines(frame, lines, distance_left, distance_right):
     # Draw midpint    
     cv2.circle(out, DOT_CORDS, 5, (0, 255, 0), cv2.FILLED)
     try:
-    # Draw distances
+    # Draw distances and write it to the screen.
         cv2.line(out, DOT_CORDS, (DOT_CORDS[0]-distance_left, DOT_CORDS[1]), (255, 0, 0), 2) # BGR: blue
         if distance_left is not None:
             x = int(DOT_CORDS[0] - distance_left / 2)
             y = DOT_CORDS[1] + 25
             cv2.putText(out, f"{distance_left:.0f}", (x, y),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 0, 0), 2)
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.3, (255, 0, 0), 2)
 
         cv2.line(out, DOT_CORDS, (DOT_CORDS[0]+distance_right, DOT_CORDS[1]), (255, 0, 0), 2) # BGR: blue
-
+        if distance_left is not None:
+            x = int(DOT_CORDS[0] + distance_right / 2)
+            y = DOT_CORDS[1] + 25
+            cv2.putText(out, f"{distance_right:.0f}", (x, y),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.3, (255, 0, 0), 2)
     except:
         print("Lines not found")
     return out
