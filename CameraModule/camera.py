@@ -120,7 +120,7 @@ def draw_lines(frame, lines):
     out = frame.copy()
     for x1, y1, x2, y2 in lines.reshape(-1, 4).astype(int):
         cv2.line(out, (x1, y1), (x2, y2), (0, 0, 255), 3)  # BGR: red
-    cv2.circle(out, (WIDTH/2, 2*HEIGHT/3) , (0, 255, 0), 2, FILLED)
+    cv2.circle(out, (WIDTH/2, 2*HEIGHT/3) , (0, 255, 0), 2, cv2.FILLED)
     return out
 
 
