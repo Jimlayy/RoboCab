@@ -61,11 +61,8 @@ void process_uart_data(uint8_t rx_head, volatile uint8_t *rx_tail, volatile uint
                     uart_data->motor_dir = uart_data->temp_motor_dir;
                     uart_data->motor_speed = uart_data->temp_motor_speed;
                     uart_data->servo_angle = uart_data->temp_servo_angle;
-                    PORTD |= (1 << PD5);
-                }else{
-                    PORTD &= ~(1 << PD5);
                 }
-
+                
                 uart_data->state = PENDING_HEADER;
             break;
 
