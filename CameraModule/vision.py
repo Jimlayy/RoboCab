@@ -155,10 +155,10 @@ def draw_lines(frame, lines, distance_left, distance_right):
         cv2.putText(out, f"{distance_left:.0f}", (x, y),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.3, (255, 0, 0), 2)
 
-        if distance_right is not None:
+    if distance_right is not None:
         cv2.line(out, DOT_CORDS, (DOT_CORDS[0]+distance_right, DOT_CORDS[1]), (255, 0, 0), 2) # BGR: blue
-            x = int(DOT_CORDS[0] + distance_right / 2)
-            y = DOT_CORDS[1] + 25
-            cv2.putText(out, f"{distance_right:.0f}", (x, y),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.3, (255, 0, 0), 2)
+        x = int(DOT_CORDS[0] + distance_right / 2)
+        y = DOT_CORDS[1] + 25
+        cv2.putText(out, f"{distance_right:.0f}", (x, y),
+            cv2.FONT_HERSHEY_SIMPLEX, 0.3, (255, 0, 0), 2)
     return out
