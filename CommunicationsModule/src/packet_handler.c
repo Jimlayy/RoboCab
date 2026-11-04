@@ -1,19 +1,27 @@
+#include <stdio.h>
+#include <time.h>
+#include "packet_handler.h"
+#include "protocol.h"
 #include "sensor_data.h"
-
-#define PKT_SENSOR 0x01
+#include "port.h"
 
 // Assemble two bytes into a 16-bit number (little-endian: low byte first)
 static uint16_t get_u16(const uint8_t *p) { return (uint16_t)(p[0] | (p[1] << 8)); }
 static int16_t  get_i16(const uint8_t *p) { return (int16_t)get_u16(p); }
 
-//Updates corresponding shared data memory
-void handle_packet(const uint8_t *data, uint8_t len)
+// Split a 16-bit number into two bytes (little-endian: low byte first)
+static void put_u16(uint8_t *p, uint16_t v) { p[0] = v & 0xFF; p[1] = v >> 8; }
+
+/* ---------- Receiving ---------- */
+
+// Updates corresponding shared data memory
+void save_packet(const uint8_t *data, uint8_t len)
 {
     if (len < 1) return;
 
     switch (data[0]) {
     case PKT_SENSOR: {
-        if (len != 11) {                       // 1 type + 5 × 2 bytes
+        if (len != PKT_SENSOR_LEN) {
             fprintf(stderr, "Sensor packet has wrong length: %u\n", len);
             return;
         }
@@ -30,4 +38,34 @@ void handle_packet(const uint8_t *data, uint8_t len)
     default:
         fprintf(stderr, "Unknown packet type 0x%02X\n", data[0]);
     }
+}
+
+/* ---------- Sending ---------- */
+
+// Wraps the payload in header/length/footer and writes it to the port
+int send_packet(int fd, const uint8_t *data, uint8_t len)
+{
+    if (len < 1 || len > MAX_PAYLOAD) {
+        fprintf(stderr, "send_packet: invalid length %u\n", len);
+        return -1;
+    }
+
+    uint8_t frame[MAX_PAYLOAD + 3];
+    frame[0] = UART_HEADER;
+    frame[1] = len;
+    for (uint8_t i = 0; i < len; i++)
+        frame[2 + i] = data[i];
+    frame[2 + len] = UART_FOOTER;
+
+    return write_all(fd, frame, (size_t)len + 3);
+}
+
+// Speed and steering angle to the steering module
+int send_steering(int fd, int16_t speed, int16_t angle)
+{
+    uint8_t data[PKT_STEERING_LEN];
+    data[0] = PKT_STEERING;
+    put_u16(&data[1], (uint16_t)speed);
+    put_u16(&data[3], (uint16_t)angle);
+    return send_packet(fd, data, sizeof data);
 }
