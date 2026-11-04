@@ -14,6 +14,8 @@ import vision
 from vision import DOT_CORDS, HEIGHT, WIDTH, LineSmoother, draw_lines, process
 
 TUNE = False  # True: show the mask + sliders to tune the values live
+PROCESS_EVERY = 2   # process every 2nd frame
+
 
 picam2 = Picamera2()
 # "RGB888" in picamera2 gives bytes in BGR order, which is what OpenCV expects
@@ -32,9 +34,15 @@ if TUNE:
     for name, val, top in [("V_MAX", vision.V_MAX, 255), ("S_MAX", vision.S_MAX, 255), ("BH_MIN", vision.BH_MIN, 255)]:
         cv2.createTrackbar(name, "tape mask", val, top, lambda _: None)
 
+
+
 try:
+    frame_no = 0
     while True:
         frame = picam2.capture_array()  # numpy array (HEIGHT, WIDTH, 3), BGR
+        frame_no += 1
+        if frame_no % PROCESS_EVERY:
+            continue
         if TUNE:
             # vision.py reads these at every call, so the sliders take effect directly.
             vision.V_MAX = cv2.getTrackbarPos("V_MAX", "tape mask")
