@@ -178,9 +178,7 @@ def strip_lines(mask):
 
 def process(frame, smoother):
     mask = tape_mask(frame)
-    vertical, horizontal = split_directions(mask)
-    raw = np.vstack([strip_lines(vertical), strip_lines(horizontal)])
-    lines = smoother.update(raw)
+    lines = smoother.update(strip_lines(mask))
     distance_left, distance_right = calcdistance(lines)
     return mask, lines, distance_left, distance_right
 
