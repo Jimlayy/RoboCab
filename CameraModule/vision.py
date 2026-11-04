@@ -128,16 +128,52 @@ def calcdistance(lines):
 
 
 
-SPLIT_LEN = 31    # px, must be longer than the tape is wide in the image
+BEND_FACTOR = 1.0   # a dent deeper than this many tape widths counts as a corner
+CUT_FACTOR = 2.0    # radius of the cut at a corner, in tape widths
+MAX_CUTS = 6        # max corners per blob
 
-def split_directions(mask):
-    """Split the tape mask into vertical-ish and horizontal-ish parts, so a corner
-    becomes two straight strips instead of one bent blob."""
-    vert_k = cv2.getStructuringElement(cv2.MORPH_RECT, (1, SPLIT_LEN))
-    horiz_k = cv2.getStructuringElement(cv2.MORPH_RECT, (SPLIT_LEN, 1))
-    vertical = cv2.morphologyEx(mask, cv2.MORPH_OPEN, vert_k)
-    horizontal = cv2.morphologyEx(mask, cv2.MORPH_OPEN, horiz_k)
-    return vertical, horizontal
+
+def find_corner(c):
+    """Inner corner of a bent blob, or None if it's straight. Also returns the tape width."""
+    width = 2 * cv2.contourArea(c) / max(cv2.arcLength(c, True), 1)
+    try:
+        defects = cv2.convexityDefects(c, cv2.convexHull(c, returnPoints=False))
+    except cv2.error:
+        defects = None
+    if defects is None:
+        return None, width
+    defects = defects.reshape(-1, 4)
+    _, _, f, depth = defects[defects[:, 3].argmax()]
+    if depth / 256 < BEND_FACTOR * width:   # depth is stored in 1/256 px
+        return None, width
+    return (int(c[f, 0, 0]), int(c[f, 0, 1])), width
+
+
+def blob_lines(c, shape, cuts=0):
+    """Centre lines for one blob. Bent blobs are cut at the corner and each piece handled separately."""
+    _, (w, h), _ = cv2.minAreaRect(c)
+    length, width = max(w, h), min(w, h)
+    if length < MIN_LENGTH:
+        return []
+    corner, tape_width = find_corner(c)
+    if corner is not None and cuts < MAX_CUTS:
+        piece_mask = np.zeros(shape, np.uint8)
+        cv2.drawContours(piece_mask, [c], -1, 255, cv2.FILLED)
+        cv2.circle(piece_mask, corner, int(CUT_FACTOR * tape_width), 0, cv2.FILLED)
+        pieces, _ = cv2.findContours(piece_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+        return [l for p in pieces for l in blob_lines(p, shape, cuts + 1)]
+    if width > MAX_WIDTH or length < MIN_ASPECT * max(width, 1):
+        return []
+    vx, vy, x0, y0 = cv2.fitLine(c, cv2.DIST_L2, 0, 0.01, 0.01).ravel()
+    t = (c[:, 0, 0] - x0) * vx + (c[:, 0, 1] - y0) * vy  # project points onto the line
+    return [[x0 + vx * t.min(), y0 + vy * t.min(), x0 + vx * t.max(), y0 + vy * t.max()]]
+
+
+def strip_lines(mask):
+    """One centre line per straight piece of tape. Returns an (N, 4) array of x1, y1, x2, y2."""
+    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+    lines = [l for c in contours for l in blob_lines(c, mask.shape)]
+    return np.array(lines, dtype=np.float32).reshape(-1, 4)
 
 
 def process(frame, smoother):
