@@ -94,29 +94,37 @@ class LineSmoother:
 
 
 def x_at_y(line, y):
-    """x where the (infinite) line through (x1, y1)-(x2, y2) crosses height y."""
+    """x where the (infinite) line through (x1, y1)-(x2, y2) crosses height y. Line lenght is controlled in calcDistance"""
     x1, y1, x2, y2 = line
     if y1 == y2:            # horizontal line: crosses every x or none
         return None
     return int(x1 + (y - y1) * (x2 - x1) / (y2 - y1))
 
 def calcdistance(lines):
-    """Calculate the distance to the left and right line if any"""
-    min_distance_right = 100000
-    min_distance_left = 10000
+    """Calculate the distance to the left and right line if any. Return None if a line doesn't exist"""
+    min_distance_right = None
+    min_distance_left = None
+    dot_x, dot_y = DOT_CORDS
 
     for line in lines:
-        x = x_at_y(line, DOT_CORDS[1])
+        x1, y1, x2, y2 = line 
+    for line in lines:
+        x1, y1, x2, y2 = line
+        if not min(y1, y2) - 10 <= dot_y <= max(y1, y2) + 10:   # segment doesn't reach the dot's height
+            continue
+        x = x_at_y(line, dot_y)
         if x is None:       # horizontal line, e.g. a stop line: says nothing about the sides
             continue
-        distance = DOT_CORDS[0] - x
+
+        distance = dot_x - x
         if distance >= 0:
-            if distance <= min_distance_left:
+            if min_distance_left is None or distance < min_distance_left:
                 min_distance_left = distance
         else:
-            distance = distance*-1
-            if distance <= min_distance_right:
+            distance = -distance
+            if min_distance_right is None or distance < min_distance_right:
                 min_distance_right = distance
+
     return min_distance_left, min_distance_right
 
 
@@ -137,21 +145,20 @@ def draw_lines(frame, lines, distance_left, distance_right):
 
     # Draw midpint
     cv2.circle(out, DOT_CORDS, 5, (0, 255, 0), cv2.FILLED)
-    try:
-    # Draw distances and write it to the screen.
-        cv2.line(out, DOT_CORDS, (DOT_CORDS[0]-distance_left, DOT_CORDS[1]), (255, 0, 0), 2) # BGR: blue
-        if distance_left is not None:
-            x = int(DOT_CORDS[0] - distance_left / 2)
-            y = DOT_CORDS[1] + 25
-            cv2.putText(out, f"{distance_left:.0f}", (x, y),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.3, (255, 0, 0), 2)
 
+
+    # Draw distances and write it to the screen.
+    if distance_left is not None:
+        cv2.line(out, DOT_CORDS, (DOT_CORDS[0]-distance_left, DOT_CORDS[1]), (255, 0, 0), 2) # BGR: blue
+        x = int(DOT_CORDS[0] - distance_left / 2)
+        y = DOT_CORDS[1] + 25
+        cv2.putText(out, f"{distance_left:.0f}", (x, y),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.3, (255, 0, 0), 2)
+
+        if distance_right is not None:
         cv2.line(out, DOT_CORDS, (DOT_CORDS[0]+distance_right, DOT_CORDS[1]), (255, 0, 0), 2) # BGR: blue
-        if distance_left is not None:
             x = int(DOT_CORDS[0] + distance_right / 2)
             y = DOT_CORDS[1] + 25
             cv2.putText(out, f"{distance_right:.0f}", (x, y),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.3, (255, 0, 0), 2)
-    except:
-        print("Lines not found")
     return out
