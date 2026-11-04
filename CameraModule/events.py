@@ -24,11 +24,13 @@ def is_horizontal(line, max_angle=STOP_MAX_ANGLE):
     return abs(y2 - y1) <= abs(x2 - x1) * math.tan(math.radians(max_angle))
 
 
-def has_stop_line(lines, dot_x):
+def has_stop_line(lines, DOT_CORDS):
     """True if a near-horizontal line crosses the road, i.e. passes the dot's x."""
+    dot_x, dot_y = DOT_CORDS
     for line in lines:
-        x1, _, x2, _ = line
-        if is_horizontal(line) and min(x1, x2) <= dot_x <= max(x1, x2):
+        x1, y1, x2, y2 = line
+        y = (y1+y2)/2
+        if is_horizontal(line) and min(x1, x2) <= dot_x <= max(x1, x2) and y > dot_y:
             return True
     return False
 
