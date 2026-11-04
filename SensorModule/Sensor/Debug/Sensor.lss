@@ -19,15 +19,15 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, READONLY, DEBUGGING
   7 .debug_abbrev 00000987  00000000  00000000  00000e7f  2**0
                   CONTENTS, READONLY, DEBUGGING
-  8 .debug_line   000002fc  00000000  00000000  00001806  2**0
+  8 .debug_line   00000310  00000000  00000000  00001806  2**0
                   CONTENTS, READONLY, DEBUGGING
-  9 .debug_frame  00000074  00000000  00000000  00001b04  2**2
+  9 .debug_frame  00000074  00000000  00000000  00001b18  2**2
                   CONTENTS, READONLY, DEBUGGING
- 10 .debug_str    0000046a  00000000  00000000  00001b78  2**0
+ 10 .debug_str    0000046a  00000000  00000000  00001b8c  2**0
                   CONTENTS, READONLY, DEBUGGING
- 11 .debug_loc    000000de  00000000  00000000  00001fe2  2**0
+ 11 .debug_loc    000000de  00000000  00000000  00001ff6  2**0
                   CONTENTS, READONLY, DEBUGGING
- 12 .debug_ranges 00000030  00000000  00000000  000020c0  2**0
+ 12 .debug_ranges 00000030  00000000  00000000  000020d4  2**0
                   CONTENTS, READONLY, DEBUGGING
 
 Disassembly of section .text:
@@ -222,10 +222,7 @@ int sample_ADC() {
  120:	08 95       	ret
 
 00000122 <main>:
-
-// define the stream
-static FILE mystdout = FDEV_SETUP_STREAM(uart_putchar, NULL, _FDEV_SETUP_WRITE);
-
+#include "DistanceSensor.h"
 
 int main(void) {
  122:	cf 93       	push	r28
@@ -238,23 +235,22 @@ int main(void) {
  130:	de bf       	out	0x3e, r29	; 62
  132:	0f be       	out	0x3f, r0	; 63
  134:	cd bf       	out	0x3d, r28	; 61
-
-    int val;
-    char str[10];
-  
-    stdout = &mystdout;
+	int val;
+	char str[10];
+	
+	stdout = &mystdout;
  136:	80 e0       	ldi	r24, 0x00	; 0
  138:	91 e0       	ldi	r25, 0x01	; 1
  13a:	90 93 11 01 	sts	0x0111, r25	; 0x800111 <__data_end+0x3>
  13e:	80 93 10 01 	sts	0x0110, r24	; 0x800110 <__data_end+0x2>
-    
-    init_UART();
+	
+	init_UART();
  142:	cb df       	rcall	.-106    	; 0xda <init_UART>
-    init_ADC();
+	init_ADC();
  144:	d5 df       	rcall	.-86     	; 0xf0 <init_ADC>
-    
-    while(1) {
-        val = sample_ADC();
+	
+	while(1) {
+		val = sample_ADC();
  146:	db df       	rcall	.-74     	; 0xfe <sample_ADC>
  148:	4a e0       	ldi	r20, 0x0A	; 10
     } else if (__radix < 2 || __radix > 36) {
@@ -267,10 +263,10 @@ int main(void) {
  14c:	6f 5f       	subi	r22, 0xFF	; 255
  14e:	7f 4f       	sbci	r23, 0xFF	; 255
  150:	04 d0       	rcall	.+8      	; 0x15a <__itoa_ncheck>
-        
-        itoa(val, str, 10);
-  
-        printf("%s\n", str);
+		
+		itoa(val, str, 10);
+		
+		printf("%s\n", str);
  152:	ce 01       	movw	r24, r28
  154:	01 96       	adiw	r24, 0x01	; 1
  156:	24 d0       	rcall	.+72     	; 0x1a0 <puts>
