@@ -6,6 +6,7 @@ Raspberry Pi Camera v2, and the tests in tests/ feed it images.
 """
 import cv2
 import numpy as np
+from events import is_horizontal
 
 WIDTH, HEIGHT = 640, 480
 DOT_CORDS = (WIDTH//2, 2*HEIGHT//3)
