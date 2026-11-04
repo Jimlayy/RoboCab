@@ -1,5 +1,6 @@
 # make test  kör alla tester på den här datorn
 # make avr   kompilerar logiken för ATmega1284
+# make camera-test kör kameramodulens tester (Python, OpenCV och pytest)
 # make clean tar bort byggfiler
 #
 # Kod i <Modul>/logic/ får inte röra hårdvara, så att den går att testa här.
@@ -27,7 +28,7 @@ TESTS := $(addprefix build/,$(READY_TESTS))
 AVR_SRCS := $(wildcard Common/logic/*.c SteeringModule/logic/*.c SensorModule/logic/*.c)
 AVR_OBJS := $(patsubst %.c,build/avr/%.o,$(AVR_SRCS))
 
-.PHONY: test pending avr clean
+.PHONY: test pending avr camera-test clean
 
 test: pending $(TESTS)
 	@status=0; for t in $(TESTS); do ./$$t || status=1; done; exit $$status
@@ -47,6 +48,9 @@ avr: $(AVR_OBJS)
 build/avr/%.o: %.c $(LOGIC_HDRS)
 	@mkdir -p $(@D)
 	$(AVR_CC) $(CFLAGS) -mmcu=$(MCU) -Os -c $< -o $@
+
+camera-test:
+	python3 -m pytest CameraModule/tests
 
 clean:
 	rm -rf build

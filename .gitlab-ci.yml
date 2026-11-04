@@ -17,3 +17,14 @@ unit-tests:
   script:
     - apt-get install -y -qq gcc libc6-dev
     - make test
+
+# OpenCV tar tid att installera, så jobbet körs bara när kameran eller CI ändrats.
+camera-tests:
+  stage: test
+  rules:
+    - changes:
+        - CameraModule/**/*
+        - .gitlab-ci.yml
+  script:
+    - apt-get install -y -qq python3-opencv python3-pytest
+    - make camera-test
