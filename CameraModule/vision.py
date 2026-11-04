@@ -108,8 +108,6 @@ def calcdistance(lines):
     dot_x, dot_y = DOT_CORDS
 
     for line in lines:
-        x1, y1, x2, y2 = line 
-    for line in lines:
         x1, y1, x2, y2 = line
         if not min(y1, y2) - 10 <= dot_y <= max(y1, y2) + 10:   # segment doesn't reach the dot's height
             continue

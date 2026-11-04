@@ -5,7 +5,7 @@ An event is only sent when a new state has held for EVENT_FRAMES frames in a row
 so a single noisy frame never triggers a message.
 
 Messages are JSON, one per datagram:
-    {"event": "intersection", "side": "left" | "right" | "both"}
+    {"event": "distance", "left": int | null, "right": int | null}
     {"event": "stop_line"}
 """
 import json
@@ -52,16 +52,18 @@ def debounce(state, value):
     return False
 
 
-def send(event, **data):
+def send(event, quiet=False, **data):
     try:
         _sock.sendto(json.dumps({"event": event, **data}).encode(), SOCKET_PATH)
     except OSError as e:   # receiver not running, buffer full, etc.
-        print(f"Could not send {event}: {e}")
+        if not quiet:
+            print(f"Could not send {event}: {e}")
 
 
 def update(lines, distance_left, distance_right, dot_x):
     """Call once per frame. Sends a message when an intersection or stop line is found."""
     # Intersection: we had lines on both sides, and now one or both are gone
+    send("distance", quiet=True, left=distance_left, right=distance_right)
     previous = _sides["stable"]
     state = (distance_left is not None, distance_right is not None)
     if debounce(_sides, state) and previous == (True, True):
