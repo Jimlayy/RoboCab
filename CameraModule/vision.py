@@ -18,9 +18,9 @@ BH_MIN = 115       # pixel must be at least this much darker than its surroundin
 BH_KERNEL = 41    # px, must be wider than the tape appears in the image
 
 # ---- What counts as a strip ----
-MIN_LENGTH = 60   # px, shorter blobs are discarded
-MIN_ASPECT = 3.0  # length / width, a strip must be elongated
-MAX_WIDTH = 40    # px, wider blobs are not tape
+MIN_LENGTH = 20   # px, shorter blobs are discarded
+MIN_ASPECT = 2.0  # length / width, a strip must be elongated
+MAX_WIDTH = 80    # px, wider blobs are not tape
 
 # ---- Smoothing between frames ----
 ALPHA = 0.4       # 0..1, lower = calmer but slower lines
