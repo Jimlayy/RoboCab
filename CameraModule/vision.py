@@ -128,13 +128,24 @@ def calcdistance(lines):
 
 
 
-def process(frame, smoother, detector=None):
-    """Your calculations go here. Returns the mask and the smoothed lines."""
+SPLIT_LEN = 31    # px, must be longer than the tape is wide in the image
+
+def split_directions(mask):
+    """Split the tape mask into vertical-ish and horizontal-ish parts, so a corner
+    becomes two straight strips instead of one bent blob."""
+    vert_k = cv2.getStructuringElement(cv2.MORPH_RECT, (1, SPLIT_LEN))
+    horiz_k = cv2.getStructuringElement(cv2.MORPH_RECT, (SPLIT_LEN, 1))
+    vertical = cv2.morphologyEx(mask, cv2.MORPH_OPEN, vert_k)
+    horizontal = cv2.morphologyEx(mask, cv2.MORPH_OPEN, horiz_k)
+    return vertical, horizontal
+
+
+def process(frame, smoother):
     mask = tape_mask(frame)
-    lines = smoother.update(strip_lines(mask))
+    vertical, horizontal = split_directions(mask)
+    raw = np.vstack([strip_lines(vertical), strip_lines(horizontal)])
+    lines = smoother.update(raw)
     distance_left, distance_right = calcdistance(lines)
-    if detector is not None:
-        detector.update(lines, distance_left, distance_right)
     return mask, lines, distance_left, distance_right
 
 
