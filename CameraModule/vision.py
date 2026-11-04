@@ -12,9 +12,9 @@ WIDTH, HEIGHT = 640, 480
 DOT_CORDS = (WIDTH//2, 2*HEIGHT//3)
 
 # ---- What counts as tape ----
-V_MAX = 110       # brightness (HSV V, 0-255) must be below this -> "black"
-S_MAX = 100       # saturation must be below this -> grey/black, not wooden frame or wall
-BH_MIN = 40       # pixel must be at least this much darker than its surroundings
+V_MAX = 100       # brightness (HSV V, 0-255) must be below this -> "black"
+S_MAX = 235       # saturation must be below this -> grey/black, not wooden frame or wall
+BH_MIN = 115       # pixel must be at least this much darker than its surroundings
 BH_KERNEL = 41    # px, must be wider than the tape appears in the image
 
 # ---- What counts as a strip ----
