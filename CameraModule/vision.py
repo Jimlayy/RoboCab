@@ -113,7 +113,7 @@ def calcdistance(lines):
         if not min(y1, y2) - 10 <= dot_y <= max(y1, y2) + 10:   # segment doesn't reach the dot's height
             continue
         x = x_at_y(line, dot_y)
-        if x is None:       # horizontal line, e.g. a stop line: says nothing about the sides
+        if is_horizontal(line):       # horizontal line, e.g. a stop line
             continue
 
         distance = dot_x - x
@@ -129,11 +129,13 @@ def calcdistance(lines):
 
 
 
-def process(frame, smoother):
+def process(frame, smoother, detector=None):
     """Your calculations go here. Returns the mask and the smoothed lines."""
     mask = tape_mask(frame)
     lines = smoother.update(strip_lines(mask))
     distance_left, distance_right = calcdistance(lines)
+    if detector is not None:
+        detector.update(lines, distance_left, distance_right)
     return mask, lines, distance_left, distance_right
 
 

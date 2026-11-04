@@ -9,9 +9,9 @@ import time
 
 import cv2
 from picamera2 import Picamera2
-
+import events
 import vision
-from vision import HEIGHT, WIDTH, LineSmoother, draw_lines, process
+from vision import DOT_CORDS, HEIGHT, WIDTH, LineSmoother, draw_lines, process
 
 TUNE = False  # True: show the mask + sliders to tune the values live
 
@@ -41,6 +41,7 @@ try:
             vision.S_MAX = cv2.getTrackbarPos("S_MAX", "tape mask")
             vision.BH_MIN = cv2.getTrackbarPos("BH_MIN", "tape mask")
         mask, lines, distance_left, distance_right = process(frame, smoother)
+        events.update(lines, distance_left, distance_right, DOT_CORDS[0])
 
 
         cv2.imshow("camera", draw_lines(frame, lines, distance_left, distance_right))
