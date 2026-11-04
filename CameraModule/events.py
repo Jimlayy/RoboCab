@@ -62,7 +62,7 @@ def send(event, quiet=False, **data):
             print(f"Could not send {event}: {e}")
 
 
-def update(lines, distance_left, distance_right, dot_x):
+def update(lines, distance_left, distance_right, DOT_CORDS):
     """Call once per frame. Sends a message when an intersection or stop line is found."""
     # Intersection: we had lines on both sides, and now one or both are gone
     send("distance", quiet=True, left=distance_left, right=distance_right)
@@ -73,5 +73,5 @@ def update(lines, distance_left, distance_right, dot_x):
         send("intersection", side=side)
 
     # Stop line: a line across the road has appeared
-    if debounce(_stop, has_stop_line(lines, dot_x)) and _stop["stable"]:
+    if debounce(_stop, has_stop_line(lines, DOT_CORDS)) and _stop["stable"]:
         send("stop_line")
