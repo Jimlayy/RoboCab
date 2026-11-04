@@ -235,10 +235,30 @@ def test_vagrat_linje_kraschar_inte():
     assert left == 120
 
 
-def test_inga_linjer_kraschar_inte():
-    left, right = calcdistance(NO_LINES)
+def test_inga_linjer_ger_none_pa_bada_sidor():
+    assert calcdistance(NO_LINES) == (None, None)
 
-    assert left > vision.WIDTH and right > vision.WIDTH  # vad "ingen linje" ska vara är inte bestämt
+
+def test_linje_bara_till_vanster_ger_none_till_hoger():
+    assert calcdistance(line(DOT_X - 120, 450, DOT_X - 120, 100)) == (120, None)
+
+
+def test_linje_bara_till_hoger_ger_none_till_vanster():
+    assert calcdistance(line(DOT_X + 150, 450, DOT_X + 150, 100)) == (None, 150)
+
+
+def test_linje_som_inte_nar_punktens_hojd_ignoreras():
+    above = line(DOT_X - 120, 100, DOT_X - 120, DOT_Y - 50)  # slutar 50 px ovanför punkten
+    below = line(DOT_X + 150, DOT_Y + 50, DOT_X + 150, 470)  # börjar 50 px under punkten
+
+    assert calcdistance(above) == (None, None)
+    assert calcdistance(below) == (None, None)
+
+
+def test_linje_som_slutar_strax_ovanfor_punkten_raknas():
+    almost = line(DOT_X - 120, 100, DOT_X - 120, DOT_Y - 5)  # inom marginalen på 10 px
+
+    assert calcdistance(almost) == (120, None)
 
 
 # ---- Hela kedjan: process och draw_lines ----
@@ -267,7 +287,12 @@ def test_draw_lines_andrar_inte_originalbilden():
 
 
 def test_draw_lines_klarar_att_inga_linjer_hittats():
-    left, right = calcdistance(NO_LINES)
+    out = draw_lines(blank(), NO_LINES, None, None)
 
-    out = draw_lines(blank(), NO_LINES, left, right)
+    assert out.shape == (vision.HEIGHT, vision.WIDTH, 3)
+
+
+def test_draw_lines_klarar_linje_pa_bara_en_sida():
+    out = draw_lines(blank(), line(DOT_X - 120, 450, DOT_X - 120, 100), 120, None)
+
     assert out.shape == (vision.HEIGHT, vision.WIDTH, 3)
