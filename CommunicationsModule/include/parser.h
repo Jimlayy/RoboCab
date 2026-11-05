@@ -2,28 +2,29 @@
 #define PARSER_H
 
 #include <stdint.h>
-#include "protocol.h"
+#include "uart_definitions.h"
 
 typedef enum {
     PENDING_HEADER,
     PENDING_LENGTH,
     PARSE_DATABYTE,
-    PENDING_CHECKSUM,
-    PENDING_FOOTER
+    PENDING_CHECKSUM
 } uart_state_t;
+
+typedef void (*packet_callback_t)(const uint8_t *data, uint8_t len);
 
 /* All state for ONE port. Give each port its own parser_t. */
 typedef struct {
     uart_state_t state;
-    uint8_t payload[MAX_PAYLOAD];
+    uint8_t payload[UART_MAX_PAYLOAD_LENGTH];
     uint8_t length;              // number of data bytes in the packet
     uint8_t index;               // how many we have received so far
-    const char *name;            // e.g. "sensor", for debug prints
     uint8_t checksum;           // are the bytes valid?
+    packet_callback_t on_packet; 
 } parser_t;
 
 /* Set a parser to its start state. Call once before use. */
-void parser_init(parser_t *p, const char *name);
+void parser_init(parser_t *p, packet_callback_t on_packet);
 
 /* Feed one received byte to the parser. When a complete packet with a
  * correct footer has arrived, save_packet() is called with its payload.

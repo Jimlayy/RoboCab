@@ -2,8 +2,9 @@
 #include <time.h>
 #include "packet_handler.h"
 #include "protocol.h"
-#include "sensor_data.h"
 #include "port.h"
+#include "uart_definitions.h"
+#include "sensor_data.h"
 
 // Assemble two bytes into a 16-bit number (little-endian: low byte first)
 static uint16_t get_u16(const uint8_t *p) { return (uint16_t)(p[0] | (p[1] << 8)); }
@@ -42,27 +43,26 @@ void save_packet(const uint8_t *data, uint8_t len)
 
 /* ---------- Sending ---------- */
 
-// Wraps the payload in header/length/footer and writes it to the port
+// Wraps the payload in header/length/ and writes it to the port
 int send_packet(int fd, const uint8_t *data, uint8_t len)
 {
-    if (len < 1 || len > MAX_PAYLOAD) {
+    if (len < 1 || len > UART_MAX_PAYLOAD_LENGTH) {
         fprintf(stderr, "send_packet: invalid length %u\n", len);
         return -1;
     }
 
-    uint8_t frame[MAX_PAYLOAD + 4];
+    uint8_t frame[UART_MAX_PAYLOAD_LENGTH + 4];
     uint8_t checksum = 0;
 
-    frame[0] = UART_HEADER;
+    frame[0] = UART_HEADER_BYTE;
     frame[1] = len;
     for (uint8_t i = 0; i < len; i++){
         frame[2 + i] = data[i];
         checksum = checksum ^ data[i];
     }
     frame[2 + len] = checksum;
-    frame[3 + len] = UART_FOOTER;
 
-    return write_all(fd, frame, (size_t)len + 4);
+    return write_all(fd, frame, (size_t)len + 3);
 }
 
 // Speed and steering angle to the steering module
