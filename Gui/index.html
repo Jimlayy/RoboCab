@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pi-kontroll</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 600px; margin: 40px auto; padding: 0 16px; }
+    button { padding: 8px 14px; margin: 4px 4px 4px 0; cursor: pointer; }
+    input  { padding: 8px; }
+    #log   { background: #111; color: #0f0; font-family: monospace; padding: 10px;
+             height: 260px; overflow-y: auto; white-space: pre-wrap; border-radius: 6px; }
+    #status.on  { color: green; }
+    #status.off { color: crimson; }
+  </style>
+</head>
+<body>
+  <h1>Raspberry Pi-kontroll</h1>
+
+  <p>
+    Brygga: <input id="url" size="28">
+    <button onclick="connect()">Anslut</button>
+    <span id="status" class="off">● Ej ansluten</span>
+  </p>
+
+  <p>
+    <button onclick="send('LED ON')">LED på</button>
+    <button onclick="send('LED OFF')">LED av</button>
+    <button onclick="send('STATUS')">Status</button>
+    <button onclick="send('PING')">Ping</button>
+    <button onclick="send('TIME')">Tid</button>
+  </p>
+
+  <p>
+    <input id="msg" placeholder="Eget kommando..." size="28">
+    <button onclick="send(document.getElementById('msg').value)">Skicka</button>
+  </p>
+
+  <div id="log"></div>
+
+  <script>
+    let ws = null;   // vår WebSocket-anslutning
+
+    // Förifyll adressen: samma dator som sidan kom ifrån, annars localhost
+    document.getElementById("url").value =
+      "ws://" + (location.hostname || "localhost") + ":8765";
+
+    function log(text) {
+      const el = document.getElementById("log");
+      el.textContent += text + "\n";
+      el.scrollTop = el.scrollHeight;      // scrolla ner automatiskt
+    }
+
+    function setStatus(connected) {
+      const s = document.getElementById("status");
+      s.textContent = connected ? "● Ansluten" : "● Ej ansluten";
+      s.className = connected ? "on" : "off";
+    }
+
+    function connect() {
+      if (ws) ws.close();
+      ws = new WebSocket(document.getElementById("url").value);
+
+      // De fyra händelserna en WebSocket har:
+      ws.onopen    = ()  => { setStatus(true);  log("[ansluten till bryggan]"); };
+      ws.onmessage = (e) => log("Pi: " + e.data);       // svar från Pi:n via bryggan
+      ws.onclose   = ()  => { setStatus(false); log("[frånkopplad]"); };
+      ws.onerror   = ()  => log("[fel – körs bridge.py?]");
+    }
+
+    function send(text) {
+      if (!ws || ws.readyState !== WebSocket.OPEN) { log("[inte ansluten]"); return; }
+      if (!text) return;
+      ws.send(text);
+      log("Du: " + text);
+    }
+
+    // Enter i textrutan skickar
+    document.getElementById("msg").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") send(e.target.value);
+    });
+
+    connect();   // försök ansluta direkt när sidan laddas
+  </script>
+</body>
+</html>
