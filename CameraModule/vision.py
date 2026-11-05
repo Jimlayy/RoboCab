@@ -6,20 +6,21 @@ Raspberry Pi Camera v2, and the tests in tests/ feed it images.
 """
 import cv2
 import numpy as np
+from events import is_horizontal
 
 WIDTH, HEIGHT = 640, 480
 DOT_CORDS = (WIDTH//2, 2*HEIGHT//3)
 
 # ---- What counts as tape ----
-V_MAX = 110       # brightness (HSV V, 0-255) must be below this -> "black"
-S_MAX = 100       # saturation must be below this -> grey/black, not wooden frame or wall
-BH_MIN = 40       # pixel must be at least this much darker than its surroundings
+V_MAX = 100       # brightness (HSV V, 0-255) must be below this -> "black"
+S_MAX = 235       # saturation must be below this -> grey/black, not wooden frame or wall
+BH_MIN = 115       # pixel must be at least this much darker than its surroundings
 BH_KERNEL = 41    # px, must be wider than the tape appears in the image
 
 # ---- What counts as a strip ----
-MIN_LENGTH = 60   # px, shorter blobs are discarded
-MIN_ASPECT = 3.0  # length / width, a strip must be elongated
-MAX_WIDTH = 40    # px, wider blobs are not tape
+MIN_LENGTH = 20   # px, shorter blobs are discarded
+MIN_ASPECT = 2.0  # length / width, a strip must be elongated
+MAX_WIDTH = 80    # px, wider blobs are not tape
 
 # ---- Smoothing between frames ----
 ALPHA = 0.4       # 0..1, lower = calmer but slower lines
@@ -107,13 +108,11 @@ def calcdistance(lines):
     dot_x, dot_y = DOT_CORDS
 
     for line in lines:
-        x1, y1, x2, y2 = line 
-    for line in lines:
         x1, y1, x2, y2 = line
         if not min(y1, y2) - 10 <= dot_y <= max(y1, y2) + 10:   # segment doesn't reach the dot's height
             continue
         x = x_at_y(line, dot_y)
-        if x is None:       # horizontal line, e.g. a stop line: says nothing about the sides
+        if is_horizontal(line):       # horizontal line, e.g. a stop line
             continue
 
         distance = dot_x - x
@@ -129,10 +128,23 @@ def calcdistance(lines):
 
 
 
+SPLIT_LEN = 31    # px, must be longer than the tape is wide in the image
+
+def split_directions(mask):
+    """Split the tape mask into vertical-ish and horizontal-ish parts, so a corner
+    becomes two straight strips instead of one bent blob."""
+    vert_k = cv2.getStructuringElement(cv2.MORPH_RECT, (1, SPLIT_LEN))
+    horiz_k = cv2.getStructuringElement(cv2.MORPH_RECT, (SPLIT_LEN, 1))
+    vertical = cv2.morphologyEx(mask, cv2.MORPH_OPEN, vert_k)
+    horizontal = cv2.morphologyEx(mask, cv2.MORPH_OPEN, horiz_k)
+    return vertical, horizontal
+
+
 def process(frame, smoother):
-    """Your calculations go here. Returns the mask and the smoothed lines."""
     mask = tape_mask(frame)
-    lines = smoother.update(strip_lines(mask))
+    vertical, horizontal = split_directions(mask)
+    raw = np.vstack([strip_lines(vertical), strip_lines(horizontal)])
+    lines = smoother.update(raw)
     distance_left, distance_right = calcdistance(lines)
     return mask, lines, distance_left, distance_right
 
