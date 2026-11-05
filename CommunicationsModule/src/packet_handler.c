@@ -50,14 +50,19 @@ int send_packet(int fd, const uint8_t *data, uint8_t len)
         return -1;
     }
 
-    uint8_t frame[MAX_PAYLOAD + 3];
+    uint8_t frame[MAX_PAYLOAD + 4];
+    uint8_t checksum = 0;
+
     frame[0] = UART_HEADER;
     frame[1] = len;
-    for (uint8_t i = 0; i < len; i++)
+    for (uint8_t i = 0; i < len; i++){
         frame[2 + i] = data[i];
-    frame[2 + len] = UART_FOOTER;
+        checksum = checksum ^ data[i];
+    }
+    frame[2 + len] = checksum;
+    frame[3 + len] = UART_FOOTER;
 
-    return write_all(fd, frame, (size_t)len + 3);
+    return write_all(fd, frame, (size_t)len + 4);
 }
 
 // Speed and steering angle to the steering module

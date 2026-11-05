@@ -3,53 +3,56 @@
 #include "protocol.h"
 #include "packet_handler.h"
 
-// Can currently only handle one thread at a time, so its only possible to poll one port at at time if you
-//need to parse data from it
-
-
-
-typedef enum {
-    PENDING_HEADER,
-    PENDING_LENGTH,
-    PARSE_DATABYTE,
-    PENDING_FOOTER
-} uart_state_t;
-
-static uart_state_t state = PENDING_HEADER;
-static uint8_t payload[MAX_PAYLOAD];
-static uint8_t length;   // number of data bytes in the packet
-static uint8_t index_;   // how many we have received so far
-
-// Parses a given byte inside a package
-void parser_feed(uint8_t byte)
+void parser_init(parser_t *p, const char *name)
 {
-    switch (state) {
+    p->state  = PENDING_HEADER;
+    p->length = 0;
+    p->index  = 0;
+    p->name   = name;
+    p->checksum = 0;
+}
+
+// Parses one received byte for the parser given in ctx
+void parser_feed(void *ctx, uint8_t byte)
+{
+    parser_t *p = ctx;
+
+    switch (p->state) {
     case PENDING_HEADER:
         if (byte == UART_HEADER)
-            state = PENDING_LENGTH;
-        break;                       // any other byte is ignored
+            p->state = PENDING_LENGTH;
+        break;                          // any other byte is ignored
 
     case PENDING_LENGTH:
         if (byte == 0 || byte > MAX_PAYLOAD) {
-            state = PENDING_HEADER;  // invalid length: drop the packet
+            p->state = PENDING_HEADER;  // invalid length: drop the packet
         } else {
-            length = byte;
-            index_ = 0;
-            state  = PARSE_DATABYTE;
+            p->length = byte;
+            p->index  = 0;
+            p->checksum = 0;
+            p->state  = PARSE_DATABYTE;
         }
         break;
 
     case PARSE_DATABYTE:
-        payload[index_++] = byte;
-        if (index_ == length)
-            state = PENDING_FOOTER;
+        p->checksum = p->checksum ^ byte;
+        p->payload[p->index++] = byte; 
+        if (p->index == p->length)
+            p->state = PENDING_CHECKSUM;
+        break; 
+
+    case PENDING_CHECKSUM:
+        if (p->checksum == byte)
+            p->state = PENDING_FOOTER;
+        else
+            p->state = PENDING_HEADER; //Drop the packet if the checksum is not the same  
         break;
 
     case PENDING_FOOTER:
         if (byte == UART_FOOTER)
-            save_packet(payload, length);
-        // wrong footer: drop it (as the test strategy in the design spec says)
-        state = PENDING_HEADER;
+            save_packet(p->payload, p->length);
+        // wrong footer: drop it
+        p->state = PENDING_HEADER;
         break;
     }
 }

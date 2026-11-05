@@ -53,7 +53,7 @@ int open_port(const char *dev, int baud)
     return fd;
 }
 
-int poll_port(int fd, volatile sig_atomic_t *running, void (*on_byte)(uint8_t))
+int poll_port(int fd, volatile sig_atomic_t *running)
 {
     struct pollfd pfd = { .fd = fd, .events = POLLIN };
 
@@ -82,7 +82,7 @@ int poll_port(int fd, volatile sig_atomic_t *running, void (*on_byte)(uint8_t))
                 return -1;
             }
             for (ssize_t i = 0; i < n; i++)
-                on_byte(buf[i]);
+                parser_feed(buf[i], )
         }
     }
     return 0;
