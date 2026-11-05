@@ -18,7 +18,7 @@ import websockets
 WS_HOST = "0.0.0.0"     # där webbsidan ansluter
 WS_PORT = 8765
 
-PI_HOST = "10.133.6.166"   # <-- BYT till Pi:ns IP, t.ex. "192.168.1.42"
+PI_HOST = "10.42.0.1"   # <-- BYT till Pi:ns IP, t.ex. "192.168.1.42"
 PI_PORT = 5000
 
 
