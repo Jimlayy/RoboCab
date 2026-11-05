@@ -3,12 +3,12 @@
 
 #include "pwm.h"
 #include "uart.h"
-#include "lcd_helper_functions.h"
 
-volatile uint8_t rx_tail = 0;
+uint8_t rx_tail = 0;
 volatile uint8_t rx_head = 0;
 volatile uint8_t rx_recieve_buffer[UART_BUFFER_SIZE];
-volatile UART_DATA uart_data = {0};
+UART_DATA uart_data = {0};
+UART_PARSER uart_parser = {0};
 
 int main(void) {
 	sei();	// enable global interrupts	
@@ -21,11 +21,13 @@ int main(void) {
 	// init uart with BAUD_RATE
 	uart_init(BAUD_RATE);
     while (1) {
-		process_uart_data(rx_head, &rx_tail, rx_recieve_buffer, &uart_data);
+		while (uart_read_available(rx_head, rx_tail)){
+			uint8_t byte = read_uart_byte(rx_tail, rx_recieve_buffer);
+			process_uart_data(&uart_parser, byte);
+		}
 		set_motor_params(uart_data.motor_dir, uart_data.motor_speed);
-		set_servo_params(uart_data.servo_angle);
-		PORTB |= (uint8_t)uart_data.state << 5;
-		PORTB &= ~(0xE0);
+		set_servo_params(uart_data.servo_pulse_width);	
+		memset(&uart_parser, 0, sizeof(UART_PARSER));	// reset UART_PARSER
 	}
 }
 
@@ -39,6 +41,4 @@ ISR(USART_RX_vect){
 
 	rx_recieve_buffer[rx_head] = UDR0;
 	rx_head = (rx_head + 1) % UART_BUFFER_SIZE;
-	PORTB |= (1 << PB4);
-	PORTB &= ~(1 << PB4);
 }

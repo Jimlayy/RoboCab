@@ -6,9 +6,9 @@ OBJCOPY=avr-objcopy
 TARGET=main
 
 # Directories
-SRC_DIR = src
+SRC_DIR = src-328
 INC_DIR = inc
-BUILD_DIR = build
+BUILD_DIR = build-328
 
 # Added -I${INC_DIR} so the compiler knows where to look for your headers
 CFLAGS=-std=c99 -Wall -g -Os -mmcu=${MCU} -DF_CPU=${F_CPU} -I${INC_DIR}

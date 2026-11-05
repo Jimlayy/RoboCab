@@ -6,7 +6,7 @@
                 "${workspaceFolder}/**",
                 "/usr/lib/avr/include/"
             ],
-            "cStandard": "c99",
+            "cStandard": "gnu17",
             "cppStandard": "gnu++17",
             "intelliSenseMode": "linux-gcc-x86",
             "compilerArgs": [

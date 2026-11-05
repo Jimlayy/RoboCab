@@ -1,26 +1,34 @@
 #pragma once
 
+#include <string.h>
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include "definitions.h"
 
+typedef void (*function_callback_t)(const uint8_t *data, uint8_t length);
+
 typedef enum {
-    PENDING_HEADER,
-    UART_MOTOR_DIR,
-    UART_MOTOR_SPEED,
-    UART_SERVO_ANGLE,
-    PENDING_FOOTER
+    PENDING_HEADER, // HEADER IDENTIFIER
+    READ_LENGTH,    // LENGTH OF DATA PAYLOAD
+    READ_PAYLOAD,   // DATA PAYLOAD (ORDER MUST MATCH THE ORDER IN THE STRUCT WHERE THE DATA WILL FINALLY ARRIVE AT)
+    PENDING_FOOTER  // RESULTING XOR-CHECKSUM OF ALL PREVIOUS BYTES (MUST MATCH CALCULATED CHECKSUM AS TO MAKE SURE SENT DATA = RECIEVED DATA)
 } UART_STATES;
 
 typedef struct {
-    bool motor_dir;
-    bool temp_motor_dir;
-    uint8_t motor_speed;
-    uint8_t temp_motor_speed;
-    uint8_t servo_angle;
-    uint8_t temp_servo_angle;
+    uint8_t temp_rx_buffer[UART_BUFFER_SIZE];
+    uint8_t expected_length;
     uint8_t checksum;
+    uint8_t message_id;
+    uint8_t payload_index;
     UART_STATES state;
+} UART_PARSER;
+
+
+typedef struct {
+    bool motor_dir;
+    bool motor_brake;
+    uint8_t motor_speed;
+    uint16_t servo_pulse_width;
 } UART_DATA;
 
 // Init UART with given baud rate
@@ -32,5 +40,8 @@ uint8_t uart_read_available(uint8_t rx_head, uint8_t rx_tail);
 // returns the first unread byte in the recieve buffer
 uint8_t read_uart_byte(volatile uint8_t *rx_tail, volatile uint8_t rx_buffer[UART_BUFFER_SIZE]);
 
-// process data recieved from uart
-void process_uart_data(uint8_t rx_head, volatile uint8_t *rx_tail, volatile uint8_t rx_buffer[UART_BUFFER_SIZE], volatile UART_DATA *uart_data);
+// assigns variables in some UART_DATA struct depending on which message_id is given.
+void dispatch_data(const uint8_t *payload, uint8_t payload_length);
+
+// process and parse data recieved from uart
+void process_uart_data(void *context, uint8_t byte);
