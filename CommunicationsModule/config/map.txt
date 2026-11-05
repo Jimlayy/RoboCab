@@ -1,0 +1,5 @@
+# RoboCab road network, read by map_load() at start-up.
+#
+# Kept in a file rather than in the code so the track can change without
+# recompiling. TODO: decide the format and enter the track from the
+# track specification.
