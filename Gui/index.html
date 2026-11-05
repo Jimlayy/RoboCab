@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pi-kontroll</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 600px; margin: 40px auto; padding: 0 16px; }
+    button { padding: 8px 14px; margin: 4px 4px 4px 0; cursor: pointer; }
+    input  { padding: 8px; }
+    #log   { background: #111; color: #0f0; font-family: monospace; padding: 10px;
+             height: 260px; overflow-y: auto; white-space: pre-wrap; border-radius: 6px; }
+    #status.on  { color: green; }
+    #status.off { color: crimson; }
+  </style>
+</head>
+<body>
+  <h1>Raspberry Pi-kontroll</h1>
+
+  <p>
+    Brygga: <input id="url" size="28">
+    <button onclick="connect()">Anslut</button>
+    <span id="status" class="off">● Ej ansluten</span>
+  </p>
+
+  <p>
+    <button onclick="send('LED ON')">LED på</button>
+    <button onclick="send('LED OFF')">LED av</button>
+    <button onclick="send('STATUS')">Status</button>
+    <button onclick="send('PING')">Ping</button>
+    <button onclick="send('TIME')">Tid</button>
+  </p>
+
+  <p>
+    <input id="msg" placeholder="Eget kommando..." size="28">
+    <button onclick="send(document.getElementById('msg').value)">Skicka</button>
+  </p>
+
+  <div id="log"></div>
+
+  <!-- Laddas sist så att alla element ovanför redan finns när skriptet körs -->
+  <script src="script.js"></script>
+</body>
+</html>

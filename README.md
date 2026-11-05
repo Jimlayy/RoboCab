@@ -2,23 +2,6 @@
 
 
 
-## Tester
-
-Testerna körs automatiskt i GitLab vid varje push. Kör dem själv i Ubuntu/WSL från repots rot:
-
-```
-make test
-```
-
-Så lägger du till ett test:
-
-1. Lägg logik utan hårdvara i `<Modul>/logic/`, till exempel `SteeringModule/logic/pd.c`. Filer där får inte inkludera `<avr/io.h>`.
-2. Skapa `Tests/test_<namn>.c` med en `main` som kör testerna, se `Tests/test_protocol.c`.
-
-Makefilen hittar nya filer själv. Kod i `Common`, `SteeringModule` och `SensorModule` kompileras även för ATmega1284 med `make avr`.
-
-Flera tester är skrivna före koden. `Tests/test_pd.c` visas som `VÄNTAR` tills `pd.c` finns i en `logic`-mapp, och körs sedan automatiskt. Headerfilen bredvid, till exempel `SteeringModule/logic/pd.h`, beskriver vad koden ska göra. Skapa `.c`-filen där och kör `make test` tills allt är grönt. Vill ni ändra ett gränssnitt ändrar ni header och test i samma commit.
-
 ## Getting started
 
 To make it easy for you to get started with GitLab, here's a list of recommended next steps.
