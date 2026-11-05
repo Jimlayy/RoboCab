@@ -51,7 +51,7 @@ def main():
 
     while True:
         # 3. Vänta tills någon (bryggan) ansluter
-        conn, addr = server.accept()
+        conn, addr = server.accept() # When a new connection is established, the connection and adress is saved.
         print("Ansluten:", addr)
 
         # makefile gör att vi kan läsa rad för rad, som från en vanlig fil
