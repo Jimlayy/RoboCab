@@ -25,26 +25,7 @@ uint8_t read_uart_byte(volatile uint8_t *rx_tail, volatile uint8_t rx_buffer[UAR
     return data;
 }
 
-void dispatch_data(const uint8_t *payload, uint8_t payload_length){
-    switch (payload[MESSAGE_ID_IDX])
-    {   
-    case 0x01:  // motor and servo 
-        UART_DATA uart_data = {0};
-        uart_data.motor_dir = payload[MOTOR_DIR_IDX];
-        uart_data.motor_brake = payload[MOTOR_BRAKE_IDX];
-        uart_data.motor_speed = payload[MOTOR_SPEED_IDX];
-        uart_data.servo_pulse_width = (payload[SERVO_PULSE_WIDTH_HB_IDX] << 8) | payload[SERVO_PULSE_WIDTH_HB_IDX - 1];
-        break;
-    case 0x02:
-        // PID not implemented
-    break;
-    
-    default:
-        break;
-    }
-}
-
-void process_uart_data(void *context, uint8_t byte){
+void process_uart_data(void *context, uint8_t byte, void (*function_callback_t)(const uint8_t*, uint8_t)){
     UART_PARSER *parser = context;
 
     switch (parser->state)
@@ -76,7 +57,7 @@ void process_uart_data(void *context, uint8_t byte){
 
         case PENDING_FOOTER:
             if (parser->checksum == byte) {
-                dispatch_data(parser->temp_rx_buffer, parser->expected_length);
+                parser->on_packet(parser->temp_rx_buffer, parser->expected_length);
             }
             
             parser->state = PENDING_HEADER;

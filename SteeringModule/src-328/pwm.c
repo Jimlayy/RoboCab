@@ -7,12 +7,12 @@ void init_motor(){
 	OCR0A = 0;
 }
 
-void set_motor_params(bool direction, uint8_t pulse_width){
+void set_motor_params(bool direction, bool brake, uint8_t pulse_width){
 	PORTD = (PORTD & ~(1 << PD7)) | (direction << PD7);
 	OCR0A = pulse_width;
 }
 
-void init_servo(volatile UART_DATA *uart_data){
+void init_servo(UART_MOTOR_SERVO_DATA *uart_motor_servo_data){
 	DDRB |= (1 << PB1); // Set PB1 (OC1A) to output for PWM
 	
 	// Clear OC1A on comp match, set on BOTTOM
@@ -22,8 +22,8 @@ void init_servo(volatile UART_DATA *uart_data){
 	TCCR1B |= (1 << WGM13) | (1 << WGM12) | (1 << CS11); 	 
 		
 	ICR1 = SERVO_TOP_50HZ;	// TOP-value (will generate 50 Hz signal)
-	uart_data->servo_pulse_width = SERVO_START_PULSE_WIDTH;
-	OCR1A = uart_data->servo_pulse_width;
+	uart_motor_servo_data->servo_pulse_width = SERVO_START_PULSE_WIDTH;
+	OCR1A = uart_motor_servo_data->servo_pulse_width;
 }
 
 // uint16_t calculate_servo_pulse_width(uint8_t angle){

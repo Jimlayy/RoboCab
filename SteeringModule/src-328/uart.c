@@ -29,22 +29,33 @@ void dispatch_data(const uint8_t *payload, uint8_t payload_length){
     switch (payload[MESSAGE_ID_IDX])
     {   
     case 0x01:  // motor and servo 
-        UART_DATA uart_data = {0};
-        uart_data.motor_dir = payload[MOTOR_DIR_IDX];
-        uart_data.motor_brake = payload[MOTOR_BRAKE_IDX];
-        uart_data.motor_speed = payload[MOTOR_SPEED_IDX];
-        uart_data.servo_pulse_width = (payload[SERVO_PULSE_WIDTH_HB_IDX] << 8) | payload[SERVO_PULSE_WIDTH_HB_IDX - 1];
+    {
+        UART_MOTOR_SERVO_DATA motor_servo_data = {0};
+        motor_servo_data.motor_dir = payload[MOTOR_DIR_IDX];
+        motor_servo_data.motor_brake = payload[MOTOR_BRAKE_IDX];
+        motor_servo_data.motor_speed = payload[MOTOR_SPEED_IDX];
+        motor_servo_data.servo_pulse_width = (payload[SERVO_PULSE_WIDTH_HB_IDX] << 8) | payload[SERVO_PULSE_WIDTH_LB_IDX];
+        motor_servo_data.new_data_is_ready = 1;
         break;
+    }
     case 0x02:
-        // PID not implemented
+    {
+        UART_PID_DATA pid_data = {0};
+        pid_data.k_p = payload[K_P_IDX];
+        pid_data.k_d = payload[K_D_IDX];
+        pid_data.dt = payload[DT_IDX];
+        pid_data.sensor_input = payload[SENSOR_INPUT_IDX];
+        pid_data.wanted_input = payload[WANTED_INPUT_IDX];
+        pid_data.new_data_is_ready = 1;
     break;
-    
+    }
+
     default:
         break;
     }
 }
 
-void process_uart_data(void *context, uint8_t byte){
+void process_uart_data(void *context, uint8_t byte, void (*function_callback_t)(uint8_t*, uint8_t)){
     UART_PARSER *parser = context;
 
     switch (parser->state)

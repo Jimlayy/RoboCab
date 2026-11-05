@@ -11,7 +11,7 @@ INC_DIR = inc
 BUILD_DIR = build-1284
 
 # Added -I${INC_DIR} so the compiler knows where to look for your headers
-CFLAGS=-std=c99 -Wall -g -Os -mmcu=${MCU} -DF_CPU=${F_CPU} -I${INC_DIR}
+CFLAGS= -Wall -g -Os -mmcu=${MCU} -DF_CPU=${F_CPU} -I${INC_DIR}
 
 # Find all .c files in src/ and map their object files to build/
 SRCS=$(wildcard ${SRC_DIR}/*.c)
