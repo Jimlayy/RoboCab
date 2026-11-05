@@ -13,6 +13,62 @@ import events
 import vision
 from vision import DOT_CORDS, HEIGHT, WIDTH, LineSmoother, draw_lines, process
 
+import threading
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+
+STREAM_PORT = 8000
+SHOW_WINDOW = False  # False om Pi:n körs utan skärm (cv2.imshow kraschar då)
+
+
+class FrameBuffer:
+    """Håller senaste JPEG-bilden. Varje tittare får alltid den nyaste, ingen kö byggs upp."""
+    def __init__(self):
+        self.jpeg = None
+        self.cond = threading.Condition()
+
+    def put(self, jpeg: bytes):
+        with self.cond:
+            self.jpeg = jpeg
+            self.cond.notify_all()
+
+    def get(self) -> bytes:
+        with self.cond:
+            self.cond.wait(timeout=1.0)
+            return self.jpeg
+
+
+frames = FrameBuffer()
+
+
+class StreamHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        if self.path != "/stream.mjpg":
+            self.send_error(404)
+            return
+        self.send_response(200)
+        self.send_header("Cache-Control", "no-cache")
+        self.send_header("Content-Type", "multipart/x-mixed-replace; boundary=frame")
+        self.end_headers()
+        try:
+            while True:
+                jpeg = frames.get()
+                if jpeg is None:
+                    continue
+                self.wfile.write(b"--frame\r\nContent-Type: image/jpeg\r\n")
+                self.wfile.write(f"Content-Length: {len(jpeg)}\r\n\r\n".encode())
+                self.wfile.write(jpeg)
+                self.wfile.write(b"\r\n")
+        except (BrokenPipeError, ConnectionResetError):
+            pass  # webbläsaren stängde fliken
+
+    def log_message(self, *args):
+        pass  # tyst, annars loggas varje anslutning
+
+
+server = ThreadingHTTPServer(("0.0.0.0", STREAM_PORT), StreamHandler)
+threading.Thread(target=server.serve_forever, daemon=True).start()
+print(f"Videoström på http://<pi-ip>:{STREAM_PORT}/stream.mjpg")
+
 TUNE = False  # True: show the mask + sliders to tune the values live
 PROCESS_EVERY = 2   # process every 2nd frame
 
@@ -51,8 +107,16 @@ try:
         mask, lines, distance_left, distance_right = process(frame, smoother)
         events.update(lines, distance_left, distance_right, DOT_CORDS)
 
+        out = draw_lines(frame, lines, distance_left, distance_right)
+        ok, jpg = cv2.imencode(".jpg", out, [cv2.IMWRITE_JPEG_QUALITY, 70])
+        if ok:
+            frames.put(jpg.tobytes())
 
-        cv2.imshow("camera", draw_lines(frame, lines, distance_left, distance_right))
+        if SHOW_WINDOW:
+            cv2.imshow("camera", out)
+            if cv2.waitKey(1) & 0xFF == ord("q"):
+                break        
+        
         if TUNE:
             cv2.imshow("tape mask", mask)
         if cv2.waitKey(1) & 0xFF == ord("q"):
