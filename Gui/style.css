@@ -1,4 +1,15 @@
-body { font-family: system-ui, sans-serif; max-width: 600px; margin: 40px auto; padding: 0 16px; }
+html {
+background-image: url(images/taxi.jpg);
+background-repeat: no-repeat;
+ background-size: cover;
+}
+
+body { font-family: system-ui, sans-serif; max-width: 600px; margin: 40px auto; padding: 0 16px;
+    padding:10px 50px 10px 50px;
+     max-height: 97vh;
+    border-radius: 12px;
+    background:  rgba(235, 238, 241, 0.7);
+}
 button { padding: 8px 14px; margin: 4px 4px 4px 0; cursor: pointer; }
 input  { padding: 8px; }
 #log   { background: #111; color: #0f0; font-family: monospace; padding: 10px;
@@ -37,3 +48,15 @@ input  { padding: 8px; }
   font-weight: 600;
   text-anchor: middle;
 }
+
+.node { cursor: pointer; }
+.node.start circle { fill: #92f0b9; stroke: #92f0b9; }
+.node.stop circle  { fill: #ff6b6b; stroke: #ff6b6b; }
+.node.start text,
+.node.stop text    { fill: #ffffff; }
+
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+#start-btn { display: inline-flex; align-items: center; gap: 8px; }
+.icon { width: 20px; height: 20px; fill: currentColor; }
+
