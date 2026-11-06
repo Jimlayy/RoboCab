@@ -1,14 +1,19 @@
 CC       ?= gcc
 CFLAGS   ?= -std=gnu11 -Wall -Wextra -O2 -g
 CFLAGS   += -pthread
-CPPFLAGS += -Iinclude
+CPPFLAGS += -Iinclude -I$(COMMON)
 LDLIBS   += -pthread
 
 BUILD  := build
 TARGET := $(BUILD)/communications_module
 
-SRCS := $(wildcard src/*.c)
-OBJS := $(SRCS:src/%.c=$(BUILD)/%.o)
+COMMON := ../Common/logic
+
+SRCS := $(wildcard src/*.c) $(wildcard $(COMMON)/*.c)
+OBJS := $(patsubst %.c,$(BUILD)/%.o,$(notdir $(SRCS)))
+
+# Where make looks for the .c files named in OBJS
+vpath %.c src $(COMMON)
 
 # Tests and tools link every component except main().
 LIB_OBJS := $(filter-out $(BUILD)/main.o,$(OBJS))
@@ -22,7 +27,7 @@ all: $(TARGET)
 $(TARGET): $(OBJS)
 	$(CC) $(CFLAGS) $^ -o $@ $(LDLIBS)
 
-$(BUILD)/%.o: src/%.c | $(BUILD)
+$(BUILD)/%.o: %.c | $(BUILD)
 	$(CC) $(CPPFLAGS) $(CFLAGS) -MMD -MP -c $< -o $@
 
 $(BUILD)/tests/%: tests/%.c $(LIB_OBJS) | $(BUILD)/tests
