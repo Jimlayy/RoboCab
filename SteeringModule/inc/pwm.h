@@ -28,6 +28,7 @@ typedef struct {
 
 
 typedef enum {
+    MESSAGE_ID_IDX,
     MOTOR_DIR_IDX,
     MOTOR_BRAKE_IDX,
     MOTOR_SPEED_IDX,

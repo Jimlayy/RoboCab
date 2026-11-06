@@ -2,11 +2,6 @@
 
 //UART
 #define FOSC 16000000UL // Clock Speed
-#define BAUD_RATE 9600
-#define UART_BUFFER_SIZE 64
-#define UART_HEADER_BYTE 0xAA
-#define MESSAGE_ID_IDX 0
-
 
 //PWM
 #define SERVO_TOP_50HZ 39999

@@ -4,14 +4,14 @@ static MOTOR_SERVO_DATA motor_servo_data = {0};
 static PID_DATA pid_data = {0};
 
 void init_motor(){
-	DDRB |= (1 << PB3) | (1 << PB2);	// Set PD6 (OC0A) as output for PWM and PD7 for direction
+	DDRB |= (1 << PB3) | (1 << PB2) | (1 << PB1);	// Set PB3 (OC0A) as output for PWM, PB2 for direction and PB1 for brake
 	TCCR0A |= (1 << COM0A1) | (1 << WGM00);	// clear OC0A on up, set on down
 	TCCR0B |= (1 << CS01);	// prescaler 8  (will generate ~4kHz signal)
 	OCR0A = 0;
 }
 
 void init_servo(){
-	DDRB |= (1 << PB1); // Set PB1 (OC1A) to output for PWM
+	DDRD |= (1 << PD5); // Set PD5 (OC1A) to output for PWM
 	
 	// Clear OC1A on comp match, set on BOTTOM
 	// Fast PWM, ICR1 := duty cycle
