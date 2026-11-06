@@ -7,6 +7,8 @@
 #include <termios.h>
 #include <pthread.h>
 #include "port.h"
+#include "parser.h"
+#include "packet_handler.h"
 
 static pthread_mutex_t write_lock = PTHREAD_MUTEX_INITIALIZER;
 
@@ -56,6 +58,8 @@ int open_port(const char *dev, int baud)
 int poll_port(int fd, volatile sig_atomic_t *running)
 {
     struct pollfd pfd = { .fd = fd, .events = POLLIN };
+    parser_t package_context;
+    parser_init(&package_context, save_packet);
 
     while (*running) {
         int r = poll(&pfd, 1, 500);
@@ -82,7 +86,7 @@ int poll_port(int fd, volatile sig_atomic_t *running)
                 return -1;
             }
             for (ssize_t i = 0; i < n; i++)
-                parser_feed(buf[i], )
+                parser_feed(&package_context ,buf[i]);
         }
     }
     return 0;

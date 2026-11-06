@@ -16,8 +16,6 @@
  */
 #include <stddef.h>
 
-#include "threads.h"
-
 void *calculation_thread(void *arg)
 {
     (void)arg;
