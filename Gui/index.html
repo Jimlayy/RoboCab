@@ -1,18 +1,11 @@
+
 <!doctype html>
 <html lang="sv">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Pi-kontroll</title>
-  <style>
-    body { font-family: system-ui, sans-serif; max-width: 600px; margin: 40px auto; padding: 0 16px; }
-    button { padding: 8px 14px; margin: 4px 4px 4px 0; cursor: pointer; }
-    input  { padding: 8px; }
-    #log   { background: #111; color: #0f0; font-family: monospace; padding: 10px;
-             height: 260px; overflow-y: auto; white-space: pre-wrap; border-radius: 6px; }
-    #status.on  { color: green; }
-    #status.off { color: crimson; }
-  </style>
+ <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <h1>Raspberry Pi-kontroll</h1>
@@ -36,13 +29,62 @@
     <button onclick="send(document.getElementById('msg').value)">Skicka</button>
   </p>
 
-  <p>
-    <img src="http://10.42.0.1:8000/stream.mjpg", width="640">
-  </p>
-
   <div id="log"></div>
+  <svg viewBox="0 0 520 340">
+    
+  <g class="roads">
+    <line class="road" data-from="A" data-to="B" x1="90"  y1="60"  x2="260" y2="60"/>
+    <line class="road" data-from="B" data-to="C" x1="260" y1="60"  x2="430" y2="60"/>
+    <line class="road" data-from="A" data-to="D" x1="90"  y1="60"  x2="90"  y2="170"/>
+    <line class="road" data-from="C" data-to="F" x1="430" y1="60"  x2="430" y2="170"/>
+    <line class="road" data-from="D" data-to="E" x1="90"  y1="170" x2="260" y2="170"/>
+    <line class="road" data-from="E" data-to="F" x1="260" y1="170" x2="430" y2="170"/>
+    <line class="road" data-from="D" data-to="G" x1="90"  y1="170" x2="90"  y2="280"/>
+    <line class="road" data-from="E" data-to="H" x1="260" y1="170" x2="260" y2="280"/>
+    <line class="road" data-from="F" data-to="I" x1="430" y1="170" x2="430" y2="280"/>
+    <line class="road" data-from="G" data-to="H" x1="90"  y1="280" x2="260" y2="280"/>
+    <line class="road" data-from="H" data-to="I" x1="260" y1="280" x2="430" y2="280"/>
+  </g>
 
+  <g class="node" data-id="A">
+    <circle cx="90" cy="60" r="29"/>
+    <text x="90" y="66">A</text>
+  </g>
+  <g class="node" data-id="B">
+    <circle cx="260" cy="60" r="29"/>
+    <text x="260" y="66">B</text>
+  </g>
+  <g class="node" data-id="C">
+    <circle cx="430" cy="60" r="29"/>
+    <text x="430" y="66">C</text>
+  </g>
+  <g class="node" data-id="D">
+    <circle cx="90" cy="170" r="29"/>
+    <text x="90" y="176">D</text>
+  </g>
+  <g class="node" data-id="E">
+    <circle cx="260" cy="170" r="29"/>
+    <text x="260" y="176">E</text>
+  </g>
+  <g class="node" data-id="F">
+    <circle cx="430" cy="170" r="29"/>
+    <text x="430" y="176">F</text>
+  </g>
+  <g class="node" data-id="G">
+    <circle cx="90" cy="280" r="29"/>
+    <text x="90" y="286">G</text>
+  </g>
+  <g class="node" data-id="H">
+    <circle cx="260" cy="280" r="29"/>
+    <text x="260" y="286">H</text>
+  </g>
+  <g class="node" data-id="I">
+    <circle cx="430" cy="280" r="29"/>
+    <text x="430" y="286">I</text>
+  </g>
+</svg>
   <!-- Laddas sist så att alla element ovanför redan finns när skriptet körs -->
   <script src="script.js"></script>
 </body>
 </html>
+```
