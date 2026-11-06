@@ -31,6 +31,7 @@ int main(void) {
 
 		if (full_message_assigned) {
 			set_motor_servo_params();
+			calculate_new_pid_output();
 		}
 	}
 }

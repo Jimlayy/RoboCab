@@ -2,6 +2,7 @@
 
 static MOTOR_SERVO_DATA motor_servo_data = {0};
 static PID_DATA pid_data = {0};
+static PID_PARAMS pid_params = {0};
 
 void init_motor(){
 	DDRB |= (1 << PB3) | (1 << PB2) | (1 << PB1);	// Set PB3 (OC0A) as output for PWM, PB2 for direction and PB1 for brake
@@ -24,6 +25,18 @@ void init_servo(){
 	OCR1A = motor_servo_data.servo_pulse_width;
 }
 
+void calculate_new_pid_output(){
+    if (pid_data.new_data_is_ready) {
+        pid_data.new_data_is_ready = 0;
+
+        pid_data.error = pid_data.wanted_input - pid_data.sensor_input;
+        
+        int32_t proportional = (int32_t)pid_params.k_p * pid_data.error;
+        int32_t derivative = (int32_t)pid_params.k_d * (pid_data.error - pid_data.prev_error) / pid_data.dt;    // change to LUT maybe? 
+        pid_data.output = proportional + derivative;
+    }
+}
+
 void set_motor_servo_params(){
 	if (motor_servo_data.new_data_is_ready){
 		motor_servo_data.new_data_is_ready = 0;
@@ -36,26 +49,24 @@ void set_motor_servo_params(){
 void dispatch_data(const uint8_t *payload, uint8_t payload_length){
     switch (payload[MESSAGE_ID_IDX])
     {   
-    case 0x01:  // motor and servo 
-    {
+    case MOTOR_SERVO_MSG_ID:  // motor and servo 
         motor_servo_data.motor_dir = payload[MOTOR_DIR_IDX];
         motor_servo_data.motor_brake = payload[MOTOR_BRAKE_IDX];
         motor_servo_data.motor_speed = payload[MOTOR_SPEED_IDX];
         motor_servo_data.servo_pulse_width = (payload[SERVO_PULSE_WIDTH_HB_IDX] << 8) | payload[SERVO_PULSE_WIDTH_LB_IDX];
         motor_servo_data.new_data_is_ready = 1;
         break;
-    }
-    case 0x02:
-    {
-        pid_data.k_p = payload[K_P_IDX];
-        pid_data.k_d = payload[K_D_IDX];
+    case PID_DATA_MSG_ID:
         pid_data.dt = payload[DT_IDX];
         pid_data.sensor_input = payload[SENSOR_INPUT_IDX];
         pid_data.wanted_input = payload[WANTED_INPUT_IDX];
+        pid_data.data_attribute = payload[DATA_ATTRIBUTE_IDX];
         pid_data.new_data_is_ready = 1;
     break;
-    }
-
+    case PID_PARAM_MSG_ID:
+        pid_params.k_d = payload[K_D_IDX];
+        pid_params.k_p = payload[K_P_IDX];
+    break;
     default:
         break;
     }

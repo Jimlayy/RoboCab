@@ -1,18 +1,24 @@
+#pragma once
+
 #include <stdbool.h>
 
 //UART
 #define FOSC 16000000UL // Clock Speed
+#define MESSAGE_ID_IDX 0
+
+typedef enum {
+    MOTOR_SERVO_MSG_ID = 1,
+    PID_DATA_MSG_ID,
+    PID_PARAM_MSG_ID,
+} MESSAGE_IDS;
 
 //PWM
 #define SERVO_TOP_50HZ 39999
 #define SERVO_START_PULSE_WIDTH 3000
 
-// SERVO ANGLE CALCULATIONS
-#define SERVO_MAX_ANGLE_IN 255
-#define SERVO_MAX_PULSE_WIDTH 4000
-#define SERVO_MIN_PULSE_WIDTH 2000
-#define SHIFT_SCALER_Q_ANGLE 21
-#define RECIPROCAL_R_ANGLE ((1UL << SHIFT_SCALER_Q_ANGLE) / SERVO_MAX_ANGLE_IN)
+//PID
+#define SHIFT_SCALER_Q_PID 21
+#define RECIPROCAL_R_PID ((1UL << SHIFT_SCALER_Q_ANGLE) / DT_MAX_VAL)
 
 // Other
 #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof(arr[0]))
