@@ -40,3 +40,48 @@ document.getElementById("msg").addEventListener("keydown", (e) => {
 });
 
 connect();   // försök ansluta direkt när sidan laddas
+
+ let start = null;
+let stop = null;
+
+function updateNodeColors(start, stop) {
+  document.querySelectorAll(".node").forEach(node => {
+    const id = node.dataset.id;
+    node.classList.toggle("start", id === start);
+    node.classList.toggle("stop", id === stop);
+  });
+}
+document.querySelectorAll(".node").forEach(node => {
+  node.addEventListener("click", () => {
+    const id = node.dataset.id;
+
+    if (start === null || stop !== null) {
+      start = id;
+      stop = null;
+    } else if (id !== start) {
+      stop = id;
+    }
+
+    updateNodeColors(start, stop);
+    updateStartButton();
+  });
+});
+
+
+const startBtn = document.getElementById("start-btn");
+const statusEl = document.getElementById("status");
+
+// Start can only be pressed when connected and both a start and a stop are chosen
+function updateStartButton() {
+  const connected = statusEl.classList.contains("on");
+  startBtn.disabled = !(connected && start !== null && stop !== null);
+}
+
+startBtn.addEventListener("click", () => {
+  send(`START ${start} ${stop}`);
+});
+
+// Re-check whenever the connection status changes (script.js switches its class on/off)
+new MutationObserver(updateStartButton).observe(statusEl, { attributes: true, attributeFilter: ["class"] });
+
+updateStartButton();

@@ -1,0 +1,256 @@
+/* RoboCab control panel: responsive styling for the current index.html.
+   Wide screens: controls and log on the left, map and GO on the right.
+   Narrow screens: one column, with the map before the log. */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
+
+:root {
+  --panel: rgba(240, 242, 244, 0.82);
+  --surface: #ffffff;
+  --ink: #1c2126;
+  --muted: #5b6670;
+  --line: #c9cfd4;
+  --taxi: #ffc72c;
+  --taxi-edge: #b8860b;
+  --road: #5b6670;
+  --start: #92f0b9;
+  --stop: #ff6b6b;
+  --on: #1f8a4c;
+  --off: #c93c3c;
+  --log-bg: #1e2226;
+  --log-ink: #e3e7ea;
+  --radius: 10px;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --panel: rgba(30, 34, 38, 0.85);
+    --surface: #272c31;
+    --ink: #e8ebee;
+    --muted: #a3adb5;
+    --line: #3b4248;
+    --road: #8a959e;
+    --on: #4cc47f;
+    --off: #ef6b6b;
+    --log-bg: #15181b;
+    color-scheme: dark;
+  }
+}
+
+* { box-sizing: border-box; }
+
+/* The photo fills the window behind everything */
+html {
+  min-height: 100%;
+  background: #2a2f34 url(images/taxi.jpg) center / cover no-repeat;
+}
+
+/* The page itself is a translucent panel on top of the photo */
+body {
+  font-family: Roboto, -apple-system, "Segoe UI", sans-serif;
+  line-height: 1.5;
+  color: var(--ink);
+  background: var(--panel);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  max-width: 1100px;
+  margin: 24px auto;
+  padding: 24px 32px 32px;
+  border-radius: 16px;
+
+  display: grid;
+  gap: 12px 40px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+  grid-template-rows: auto auto auto auto 1fr auto;
+  grid-template-areas:
+    "title  title"
+    "conn   map"
+    "cmds   map"
+    "custom map"
+    "log    map"
+    "log    go";
+}
+
+h1                      { grid-area: title; }
+body > p:nth-of-type(1) { grid-area: conn; }
+body > p:nth-of-type(2) { grid-area: cmds; }
+body > p:nth-of-type(3) { grid-area: custom; }
+#log                    { grid-area: log; }
+body > svg              { grid-area: map; }
+body > p:last-of-type   { grid-area: go; }
+
+h1 {
+  font-size: clamp(1.5rem, 1.2rem + 1.2vw, 2.1rem);
+  line-height: 1.15;
+  margin: 0 0 8px;
+}
+
+/* Rows of controls */
+body > p {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 10px;
+  margin: 0;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+input {
+  font: inherit;
+  font-weight: 400;
+  font-size: 1rem;          /* 16px stops phones from zooming in on focus */
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 9px 12px;
+  flex: 1 1 180px;
+  min-width: 0;
+}
+
+input::placeholder { color: var(--muted); }
+
+button {
+  font: inherit;
+  font-weight: 600;
+  color: #1c2126;
+  background: var(--taxi);
+  border: none;
+  border-radius: var(--radius);
+  padding: 9px 16px;
+  box-shadow: 0 3px 0 var(--taxi-edge);
+  cursor: pointer;
+  transition: transform 80ms ease-out, box-shadow 80ms ease-out;
+}
+
+button:hover:not(:disabled) { filter: brightness(1.05); }
+
+button:active:not(:disabled) {
+  transform: translateY(3px);
+  box-shadow: 0 0 0 var(--taxi-edge);
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+button:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+/* Connection status as a small pill */
+#status {
+  font-size: 0.875rem;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+
+#status.on  { color: var(--on); }
+#status.off { color: var(--off); }
+
+/* Log: fills the space below the controls and scrolls inside itself */
+#log {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.85rem;
+  color: var(--log-ink);
+  background: var(--log-bg);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  min-height: 200px;
+  contain: size;            /* new messages scroll instead of stretching the page */
+  overflow-y: auto;
+  white-space: pre-wrap;
+}
+
+/* Map */
+body > svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.road {
+  stroke: var(--road);
+  stroke-width: 8;
+  stroke-linecap: round;
+}
+
+.node { cursor: pointer; }
+
+.node circle {
+  fill: var(--surface);
+  stroke: var(--ink);
+  stroke-width: 3;
+}
+
+.node text {
+  fill: var(--ink);
+  font-weight: 600;
+  text-anchor: middle;
+}
+
+.node.start circle { fill: var(--start); stroke: var(--start); }
+.node.stop circle  { fill: var(--stop); stroke: var(--stop); }
+.node.start text,
+.node.stop text    { fill: #1c2126; }   /* dark text stays readable on both colours */
+
+/* GO button under the map, full width so it's easy to hit */
+#start-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 1.1rem;
+  padding: 12px 20px;
+}
+
+.icon {
+  width: 22px;
+  height: 22px;
+  fill: currentColor;
+}
+
+
+.camera {
+  width: 640px;
+  background-color: #15181b;
+  padding: 5px;
+  height: 340px;
+}
+
+/* Narrow screens: one column, map and GO before the log */
+@media (max-width: 880px) {
+  body {
+    margin: 0 auto;
+    min-height: 100vh;
+    padding: 20px 16px 28px;
+    border-radius: 0;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: none;
+    grid-template-areas:
+      "title"
+      "conn"
+      "cmds"
+      "custom"
+      "map"
+      "go"
+      "log";
+  }
+
+  #log { height: 35vh; }
+}
+
+
+@media (prefers-reduced-motion: reduce) {
+  button { transition: none; }
+}

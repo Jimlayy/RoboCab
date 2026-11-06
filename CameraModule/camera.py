@@ -12,6 +12,13 @@ from picamera2 import Picamera2
 import events
 import vision
 from vision import DOT_CORDS, HEIGHT, WIDTH, LineSmoother, draw_lines, process
+from stream_server import frames, stream
+
+
+SHOW_WINDOW = False  # False om Pi:n körs utan skärm (cv2.imshow kraschar då)
+
+
+stream() # This starts a camera stream
 
 TUNE = False  # True: show the mask + sliders to tune the values live
 PROCESS_EVERY = 2   # process every 2nd frame
@@ -51,8 +58,16 @@ try:
         mask, lines, distance_left, distance_right = process(frame, smoother)
         events.update(lines, distance_left, distance_right, DOT_CORDS)
 
+        out = draw_lines(frame, lines, distance_left, distance_right)
+        ok, jpg = cv2.imencode(".jpg", out, [cv2.IMWRITE_JPEG_QUALITY, 70])
+        if ok:
+            frames.put(jpg.tobytes())
 
-        cv2.imshow("camera", draw_lines(frame, lines, distance_left, distance_right))
+        if SHOW_WINDOW:
+            cv2.imshow("camera", out)
+            if cv2.waitKey(1) & 0xFF == ord("q"):
+                break        
+        
         if TUNE:
             cv2.imshow("tape mask", mask)
         if cv2.waitKey(1) & 0xFF == ord("q"):
