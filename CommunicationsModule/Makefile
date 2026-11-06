@@ -1,13 +1,13 @@
 CC       ?= gcc
 CFLAGS   ?= -std=gnu11 -Wall -Wextra -O2 -g
 CFLAGS   += -pthread
-CPPFLAGS += -Iinclude
+CPPFLAGS += -Iinclude -I$(COMMON)
 LDLIBS   += -pthread
 
 BUILD  := build
 TARGET := $(BUILD)/communications_module
 
-COMMON := ../Common
+COMMON := ../Common/logic
 
 SRCS := $(wildcard src/*.c) $(wildcard $(COMMON)/*.c)
 OBJS := $(patsubst %.c,$(BUILD)/%.o,$(notdir $(SRCS)))

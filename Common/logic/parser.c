@@ -1,6 +1,4 @@
-#include <stdint.h>
 #include "parser.h"
-#include "uart_definitions.h"
 
 void parser_init(parser_t *p, packet_callback_t on_packet)
 {
@@ -11,8 +9,13 @@ void parser_init(parser_t *p, packet_callback_t on_packet)
     p->on_packet = on_packet;
 }
 
+void parser_reset(parser_t *p){
+    p->index  = 0;
+    p->checksum = 0;
+}
+
 // Parses one received byte for the parser given in ctx
-void parser_feed(void *ctx, uint8_t byte)
+bool parser_feed(void *ctx, uint8_t byte)
 {
     parser_t *p = ctx;
 
@@ -26,9 +29,8 @@ void parser_feed(void *ctx, uint8_t byte)
         if (byte == 0 || byte > UART_MAX_PAYLOAD_LENGTH) {
             p->state = PENDING_HEADER;  // invalid length: drop the packet
         } else {
+            parser_reset(p);
             p->length = byte;
-            p->index  = 0;
-            p->checksum = 0;
             p->state  = PARSE_DATABYTE;
         }
         break;
@@ -44,6 +46,7 @@ void parser_feed(void *ctx, uint8_t byte)
         if (p->checksum == byte){
             p->on_packet(p->payload, p->length);}
         p->state = PENDING_HEADER; //Drop the packet if the checksum is not the same  
-        break;
+        return 1;
     }
+    return 0;
 }

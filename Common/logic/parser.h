@@ -2,6 +2,7 @@
 #define PARSER_H
 
 #include <stdint.h>
+#include <stdbool.h>
 #include "uart_definitions.h"
 
 typedef enum {
@@ -26,9 +27,12 @@ typedef struct {
 /* Set a parser to its start state. Call once before use. */
 void parser_init(parser_t *p, packet_callback_t on_packet);
 
+/* Reset all parser attributes except packet_callback_t on_packet */
+void parser_reset(parser_t *p);
+
 /* Feed one received byte to the parser. When a complete packet with a
  * correct footer has arrived, save_packet() is called with its payload.
  * ctx must point to a parser_t (void * so it fits poll_port's callback). */
-void parser_feed(void *ctx, uint8_t byte);
+bool parser_feed(void *ctx, uint8_t byte);
 
 #endif
