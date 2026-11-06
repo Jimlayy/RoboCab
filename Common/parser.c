@@ -1,7 +1,5 @@
 #include <stdint.h>
 #include "parser.h"
-#include "protocol.h"
-#include "packet_handler.h"
 #include "uart_definitions.h"
 
 void parser_init(parser_t *p, packet_callback_t on_packet)

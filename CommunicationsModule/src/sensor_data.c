@@ -1,5 +1,5 @@
 #include <pthread.h>
-#include "sensor_data.h"
+#include "../include/sensor_data.h"
 
 /* Shared between the port thread (writer) and the calculation thread (reader). */
 static pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;

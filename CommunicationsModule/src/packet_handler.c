@@ -1,10 +1,10 @@
 #include <stdio.h>
 #include <time.h>
-#include "packet_handler.h"
-#include "protocol.h"
-#include "port.h"
-#include "uart_definitions.h"
-#include "sensor_data.h"
+#include "../include/packet_handler.h"
+#include "../include/protocol.h"
+#include "../include/port.h"
+#include "../../Common/uart_definitions.h"
+#include "../include/sensor_data.h"
 
 // Assemble two bytes into a 16-bit number (little-endian: low byte first)
 static uint16_t get_u16(const uint8_t *p) { return (uint16_t)(p[0] | (p[1] << 8)); }

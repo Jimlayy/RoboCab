@@ -6,9 +6,9 @@
 #include <unistd.h>
 #include <termios.h>
 #include <pthread.h>
-#include "port.h"
-#include "parser.h"
-#include "packet_handler.h"
+#include "../include/port.h"
+#include "../../Common/parser.h"
+#include "../include/packet_handler.h"
 
 static pthread_mutex_t write_lock = PTHREAD_MUTEX_INITIALIZER;
 
