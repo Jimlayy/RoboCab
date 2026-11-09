@@ -1,10 +1,9 @@
 #include "uart.h"
 
 void uart_init(){
-    uint16_t myubbr = FOSC/16/BAUD_RATE-1;
     /*Set baud rate */
-    UBRR0H = (myubbr>>8);
-    UBRR0L = myubbr;
+    UBRR0H = (MYUBBR>>8);
+    UBRR0L = MYUBBR;
 
     cli();
     /*Enable receiver and reciever interrupt */

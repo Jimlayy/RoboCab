@@ -1,9 +1,11 @@
 #pragma once
 
+#include "uart_definitions.h"
 #include <stdbool.h>
 
 //UART
 #define FOSC 16000000UL // Clock Speed
+#define MYUBBR (FOSC/16/BAUD_RATE-1)
 #define MESSAGE_ID_IDX 0
 
 typedef enum {
