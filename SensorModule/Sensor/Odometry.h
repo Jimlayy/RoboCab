@@ -29,7 +29,7 @@ void init_odometry() {
     EIFR = (1<<INTF0)|(1<<INTF1);
     EIMSK = (1<<INT0)|(1<<INT1);
 
-    TCCR0A = (1<<wgm01);
+    TCCR0A = (1<<WGM01);
     TCCR0B = (1<<CS01)|(1<<CS00);
     OCR0A = 249;
     TIMSK0 = (1<<OCIE0A);
