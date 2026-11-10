@@ -53,7 +53,15 @@ void dispatch_data(const uint8_t *payload, uint8_t payload_length){
         motor_servo_data.motor_dir = payload[MOTOR_DIR_IDX];
         motor_servo_data.motor_brake = payload[MOTOR_BRAKE_IDX];
         motor_servo_data.motor_speed = payload[MOTOR_SPEED_IDX];
-        motor_servo_data.servo_pulse_width = (payload[SERVO_PULSE_WIDTH_HB_IDX] << 8) | payload[SERVO_PULSE_WIDTH_LB_IDX];
+
+        if ((uint16_t)payload[SERVO_PULSE_WIDTH_HB_IDX] + payload[SERVO_PULSE_WIDTH_LB_IDX] < SERVO_PULSE_WIDTH_MIN) {
+            motor_servo_data.servo_pulse_width = SERVO_PULSE_WIDTH_MIN;
+        } else if ((uint16_t)payload[SERVO_PULSE_WIDTH_HB_IDX] + payload[SERVO_PULSE_WIDTH_LB_IDX] > SERVO_PULSE_WIDTH_MAX){
+            motor_servo_data.servo_pulse_width = SERVO_PULSE_WIDTH_MAX;
+        } else {
+            motor_servo_data.servo_pulse_width = (payload[SERVO_PULSE_WIDTH_HB_IDX] << 8) | payload[SERVO_PULSE_WIDTH_LB_IDX];
+        }
+        
         motor_servo_data.new_data_is_ready = 1;
         break;
     case PID_DATA_MSG_ID:
