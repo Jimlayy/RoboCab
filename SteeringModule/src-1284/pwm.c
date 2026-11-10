@@ -32,7 +32,8 @@ void calculate_new_pid_output(){
         pid_data.error = pid_data.wanted_input - pid_data.sensor_input;
         
         int32_t proportional = (int32_t)pid_params.k_p * pid_data.error;
-        int32_t derivative = (int32_t)pid_params.k_d * (pid_data.error - pid_data.prev_error) / pid_data.dt;    // change to LUT maybe? 
+        int32_t delta_error = pid_data.error - pid_data.prev_error;
+        int32_t derivative = (int32_t)pid_params.k_d * delta_error / pid_data.dt;    // change to LUT maybe? 
         pid_data.output = proportional + derivative;
     }
 }
@@ -61,7 +62,7 @@ void dispatch_data(const uint8_t *payload, uint8_t payload_length){
         } else {
             motor_servo_data.servo_pulse_width = (payload[SERVO_PULSE_WIDTH_HB_IDX] << 8) | payload[SERVO_PULSE_WIDTH_LB_IDX];
         }
-        
+
         motor_servo_data.new_data_is_ready = 1;
         break;
     case PID_DATA_MSG_ID:

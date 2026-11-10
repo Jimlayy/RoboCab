@@ -9,7 +9,7 @@ uint8_t rx_tail = 0;
 volatile uint8_t rx_head = 0;
 volatile uint8_t rx_recieve_buffer[UART_MAX_PAYLOAD_LENGTH];
 parser_t uart_parser;
-bool full_message_assigned = 0;
+uint8_t message_id = 0;
 
 int main(void) {
 	sei();	// enable global interrupts	
@@ -26,12 +26,21 @@ int main(void) {
     while (1) {
 		while (uart_read_available(rx_head, rx_tail)){
 			uint8_t byte = read_uart_byte(&rx_tail, rx_recieve_buffer);
-			full_message_assigned = parser_feed(&uart_parser, byte);
+			message_id = parser_feed(&uart_parser, byte);
 		}
 
-		if (full_message_assigned) {
-			set_motor_servo_params();
-			calculate_new_pid_output();
+		if (message_id != 0) {
+			switch (message_id)
+			{
+			case MOTOR_SERVO_MSG_ID:
+				set_motor_servo_params();
+				break;
+			case PID_DATA_MSG_ID:
+				calculate_new_pid_output();
+			break;
+			default:
+				break;
+			}
 		}
 	}
 }
