@@ -36,7 +36,7 @@ int main(void) {
 				set_motor_servo_params();
 				break;
 			case PID_DATA_MSG_ID:
-				calculate_new_pid_output();
+				run_new_pid();
 			break;
 			default:
 				break;
