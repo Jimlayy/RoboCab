@@ -15,9 +15,33 @@
  * On exit, send a stop directive so the car is left standing still.
  */
 #include <stddef.h>
+#include "sensor_data.h"
+
+static sensor_data_t sd;
+
+typedef struct {
+    int from_node;        // last node passed (confirmed by the camera)
+    int to_node;          // next node on the route
+    float dist_on_edge;   // distance driven since from_node (odometry), in cm
+    int route_index;      // where in the planned route list we are
+} car_state_t;
 
 void *calculation_thread(void *arg)
 {
     (void)arg;
     return NULL;
+}
+
+
+void read_data(void *arg)
+{
+    get_sensor_data(&sd);
+    // TODO; Add data from external pc (route)
+    (void)arg;
+}
+
+void shortest_route(void *arg)
+{
+    //Calculate shortest route to 
+    (void)arg;
 }

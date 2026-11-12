@@ -20,6 +20,6 @@ void sensor_data_update(const sensor_data_t *s);
 
 /* Copy the latest sensor reading into *out. Thread-safe.
  * Returns 0 on success, -1 if no reading has been received yet. */
-int sensor_data_get(sensor_data_t *out);
+int get_sensor_data(sensor_data_t *out);
 
 #endif
