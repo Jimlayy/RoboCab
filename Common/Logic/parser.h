@@ -33,6 +33,6 @@ void parser_reset(parser_t *p);
 /* Feed one received byte to the parser. When a complete packet with a
  * correct footer has arrived, save_packet() is called with its payload.
  * ctx must point to a parser_t (void * so it fits poll_port's callback). */
-bool parser_feed(void *ctx, uint8_t byte);
+uint8_t parser_feed(void *ctx, uint8_t byte);
 
 #endif

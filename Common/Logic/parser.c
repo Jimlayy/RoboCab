@@ -15,7 +15,7 @@ void parser_reset(parser_t *p){
 }
 
 // Parses one received byte for the parser given in ctx
-bool parser_feed(void *ctx, uint8_t byte)
+uint8_t parser_feed(void *ctx, uint8_t byte)
 {
     parser_t *p = ctx;
 
@@ -46,7 +46,7 @@ bool parser_feed(void *ctx, uint8_t byte)
         if (p->checksum == byte){
             p->on_packet(p->payload, p->length);}
         p->state = PENDING_HEADER; //Drop the packet if the checksum is not the same  
-        return 1;
+        return p->payload[0];
     }
     return 0;
 }
