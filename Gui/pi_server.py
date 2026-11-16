@@ -58,6 +58,7 @@ def main():
         with conn, conn.makefile("r", encoding="utf-8") as reader:
             for line in reader:              # loopen slutar när bryggan kopplar ner
                 print("Fick:", line.strip())
+                # put line.strip() on socket
                 answer = handle_command(line)
                 conn.sendall((answer + "\n").encode("utf-8"))
 

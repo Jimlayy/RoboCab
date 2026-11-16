@@ -15,6 +15,7 @@ int main(void) {
 	sei();	// enable global interrupts	
 	parser_init(&uart_parser, dispatch_data);
 
+	DDRD |= (1 << PD6) | (1 << PD7);
 	// motor
 	init_motor();
 
@@ -54,13 +55,6 @@ ISR(USART0_RX_vect){
 	}
 
 	rx_recieve_buffer[rx_head] = UDR0;
-
-	uint8_t buf = rx_recieve_buffer[rx_head];
-	PORTD = (PORTD & ~(0b01011000));
-    bool bit0 = buf & 0x01;
-    bool bit1 = buf & 0x02;
-    bool bit2 = buf & 0x04;
-	PORTD |= (bit0 << PD3) | (bit1 << PD4) | (bit2 << PD6);
-
+	printf("%u\n", rx_recieve_buffer[rx_head]);
 	rx_head = (rx_head + 1) % UART_MAX_PAYLOAD_LENGTH;
 }
