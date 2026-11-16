@@ -13,13 +13,16 @@ LOGIC_HDRS := $(wildcard */logic/*.h)
 AVR_SRCS := $(wildcard Common/logic/*.c SteeringModule/logic/*.c SensorModule/logic/*.c)
 AVR_OBJS := $(patsubst %.c,build/avr/%.o,$(AVR_SRCS))
 
-.PHONY: avr clean
+.PHONY: avr common-test clean
 
 avr: $(AVR_OBJS)
 
 build/avr/%.o: %.c $(LOGIC_HDRS)
 	@mkdir -p $(@D)
 	$(AVR_CC) $(CFLAGS) -mmcu=$(MCU) -Os -c $< -o $@
+
+common-test:
+	gcc -std=c11 -Wall -Wextra -Ivendor/unity -ICommon/Logic Common/tests/test_parser.c Common/Logic/parser.c vendor/unity/unity.c -o build/test_parser && ./build/test_parser
 
 clean:
 	rm -rf build

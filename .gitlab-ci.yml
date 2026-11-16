@@ -11,3 +11,10 @@ build-avr:
   script:
     - apt-get install -y -qq gcc-avr avr-libc
     - make avr
+
+common-tests:
+  stage: test
+  script:
+    - apt-get install -y -qq gcc
+    - apt-get install -y -qq libc6-dev
+    - make common-test
