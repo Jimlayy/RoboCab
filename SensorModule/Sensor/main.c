@@ -4,6 +4,13 @@
 #define WHEEL_CIRCUMFERENCE_MM 120      // not measured yet (D-23): prints pulses only
 #define STOP_TIMEOUT_MS 1000          // provisional (D-25)
 
+void init_UART() {
+    UBRR0H = (unsigned char) (((F_CPU/16.0/BAUD)-1+0.5)/256);
+    UBRR0L = (unsigned char) ((F_CPU/16.0/BAUD)-1+0.5); 
+    UCSR0B = (1<<TXEN0);                    // Enable TX
+    UCSR0C = (1<<UCSZ01)|(1<<UCSZ00);       // 8-bits,no parity, 1 stop bit
+}
+
 int main(void) {
     odometry_sample_t odo;
 	uint16_t dist;
@@ -32,3 +39,14 @@ int main(void) {
 		//printf("%s\n", val_adc);
     }
 }
+
+// custom output function
+int uart_putchar(char c, FILE *stream) {   // print char to stream (UART)
+    // wait for UART to be ready
+    while (!(UCSR0A & (1<<UDRE0)));
+    UDR0 = c;
+    return 0;
+}
+
+// define the stream
+static FILE mystdout = FDEV_SETUP_STREAM(uart_putchar, NULL, _FDEV_SETUP_WRITE);
