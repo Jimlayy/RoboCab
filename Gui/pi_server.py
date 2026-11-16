@@ -21,19 +21,25 @@ def handle_command(cmd: str) -> str:
     """Tar emot ett kommando som text och returnerar svaret som text."""
     cmd = cmd.strip().upper()
 
-    match cmd:
+    match cmd.split():
         case "TIME":
             return "TIME " + time.strftime("%H:%M:%S")
-        case "FORWARD":
+        case ["FORWARD"]:
             return "Skickar kommandot framåt"
-        case "BACK":
+        case ["BACK"]:
             return "Skickar kommandot back"
-        case "LEFT":
+        case ["LEFT"]:
             return "Skickar kommandot vänster"
-        case "RIGHT":
+        case ["RIGHT"]:
             return "Skickar kommandot höger"
-        case "BRAKE":
+        case ["STOP"]:
             return "Skickar kommandot bromsa!"
+        case ["AUTO", "ON"]:
+            return "Byter till autonomt körläge"
+        case ["AUTO", "OFF"]:
+            return "Byter till manuellt körläge"
+        case ["START", start, goal]
+            return f"SKickar information om upphämtning {start} och avlämning {goal}"
         case _:
             return "OKÄNT KOMMANDO: " + cmd
 
