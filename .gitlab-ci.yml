@@ -11,3 +11,9 @@ build-avr:
   script:
     - apt-get install -y -qq gcc-avr avr-libc
     - make avr
+
+camera-tests:
+  stage: test
+  script:
+    - apt-get install -y -qq python3-opencv python3-pytest
+    - make camera-test
