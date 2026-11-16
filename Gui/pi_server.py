@@ -16,29 +16,53 @@ PORT = 5000        # porten bryggan ska ansluta till
 
 led_on = False     # låtsas-tillstånd; byt mot riktig GPIO-kod om du vill
 
+C_SOCK_PATH = "/tmp/robocab_cmd.sock"   # måste matcha SOCK_PATH i cmd_reader.c
+
+# Datagram-socket: varje sendto() blir exakt ett meddelande hos C-tråden,
+# så vi behöver ingen radbrytning eller buffring på C-sidan.
+c_sock = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
+
+
+def send_to_c(cmd: str) -> bool:
+    """Skickar ett kommando till C-tråden. Returnerar False om den inte lyssnar."""
+    try:
+        c_sock.sendto(cmd.encode("utf-8"), C_SOCK_PATH)
+        return True
+    except (FileNotFoundError, ConnectionRefusedError):
+        print("Varning: C-programmet lyssnar inte på", C_SOCK_PATH)
+        return False
+
 
 def handle_command(cmd: str) -> str:
     """Tar emot ett kommando som text och returnerar svaret som text."""
     cmd = cmd.strip().upper()
 
     match cmd.split():
-        case "TIME":
+        case ["TIME"]:
             return "TIME " + time.strftime("%H:%M:%S")
         case ["FORWARD"]:
+            send_to_c(cmd)
             return "Skickar kommandot framåt"
         case ["BACK"]:
+            send_to_c(cmd)
             return "Skickar kommandot back"
         case ["LEFT"]:
+            send_to_c(cmd)
             return "Skickar kommandot vänster"
         case ["RIGHT"]:
+            send_to_c(cmd)
             return "Skickar kommandot höger"
         case ["STOP"]:
+            send_to_c(cmd)
             return "Skickar kommandot bromsa!"
         case ["AUTO", "ON"]:
+            send_to_c(cmd)
             return "Byter till autonomt körläge"
         case ["AUTO", "OFF"]:
+            send_to_c(cmd)
             return "Byter till manuellt körläge"
         case ["START", start, goal]:
+            send_to_c(cmd)
             return f"SKickar information om upphämtning {start} och avlämning {goal}"
         case _:
             return "OKÄNT KOMMANDO: " + cmd
