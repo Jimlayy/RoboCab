@@ -22,7 +22,7 @@ build/avr/%.o: %.c $(LOGIC_HDRS)
 	$(AVR_CC) $(CFLAGS) -mmcu=$(MCU) -Os -c $< -o $@
 
 common-test:
-	gcc -std=c11 -Wall -Wextra -Ivendor/unity -ICommon/Logic Common/tests/test_parser.c Common/Logic/parser.c vendor/unity/unity.c -o build/test_parser && ./build/test_parser
+	gcc -std=c11 -Wall -Wextra -Ivendor/unity -ICommon/Logic Common/tests/test_parser.c Common/Logic/parser.c Vendor/unity/unity.c -o build/test_parser && ./build/test_parser
 
 clean:
 	rm -rf build
