@@ -1,5 +1,5 @@
 MCU=atmega1284p
-F_CPU=16000000
+F_CPU=16000000UL
 
 CC=avr-gcc
 OBJCOPY=avr-objcopy
