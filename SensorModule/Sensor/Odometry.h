@@ -19,6 +19,7 @@ static volatile uint32_t ms_counter; // ms sedan start
 typedef struct {
     uint32_t left_pulses, right_pulses;
     uint32_t left_last_ms, right_last_ms;
+	uint32_t left_tslp, right_tslp; // Time since last pulse
     uint32_t now_ms;
 } odometry_sample_t;
 
@@ -47,6 +48,8 @@ odometry_sample_t sample_odometry() {
         sample.right_pulses = right_pulses;
         sample.left_last_ms = left_last_ms;
         sample.right_last_ms = right_last_ms;
+		sample.left_tslp = ms_counter - left_last_ms;
+		sample.right_tslp = ms_counter - right_last_ms;
         sample.now_ms = ms_counter;
     }
     return sample;
