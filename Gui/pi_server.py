@@ -19,24 +19,23 @@ led_on = False     # låtsas-tillstånd; byt mot riktig GPIO-kod om du vill
 
 def handle_command(cmd: str) -> str:
     """Tar emot ett kommando som text och returnerar svaret som text."""
-    global led_on
     cmd = cmd.strip().upper()
 
-    if cmd == "PING":
-        return "PONG"
-    if cmd == "TIME":
-        return "TIME " + time.strftime("%H:%M:%S")
-    if cmd == "LED ON":
-        led_on = True
-        # Här skulle du t.ex. göra: GPIO.output(17, GPIO.HIGH)
-        return "LED är PÅ"
-    if cmd == "LED OFF":
-        led_on = False
-        # Här skulle du t.ex. göra: GPIO.output(17, GPIO.LOW)
-        return "LED är AV"
-    if cmd == "STATUS":
-        return "LED " + ("PÅ" if led_on else "AV")
-    return "OKÄNT KOMMANDO: " + cmd
+    match cmd:
+        case "TIME":
+            return "TIME " + time.strftime("%H:%M:%S")
+        case "FORWARD":
+            return "Skickar kommandot framåt"
+        case "BACK":
+            return "Skickar kommandot back"
+        case "LEFT":
+            return "Skickar kommandot vänster"
+        case "RIGHT":
+            return "Skickar kommandot höger"
+        case "BRAKE":
+            return "Skickar kommandot bromsa!"
+        case _:
+            return "OKÄNT KOMMANDO: " + cmd
 
 
 def main():
