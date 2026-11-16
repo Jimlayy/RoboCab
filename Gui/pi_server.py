@@ -38,7 +38,7 @@ def handle_command(cmd: str) -> str:
             return "Byter till autonomt körläge"
         case ["AUTO", "OFF"]:
             return "Byter till manuellt körläge"
-        case ["START", start, goal]
+        case ["START", start, goal]:
             return f"SKickar information om upphämtning {start} och avlämning {goal}"
         case _:
             return "OKÄNT KOMMANDO: " + cmd
