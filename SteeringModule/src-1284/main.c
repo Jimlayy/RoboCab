@@ -56,5 +56,6 @@ ISR(USART0_RX_vect){
 
 	rx_recieve_buffer[rx_head] = UDR0;
 	printf("%u\n", rx_recieve_buffer[rx_head]);
+	OCR0A = 0xF8;
 	rx_head = (rx_head + 1) % UART_MAX_PAYLOAD_LENGTH;
 }

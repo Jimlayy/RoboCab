@@ -33,7 +33,7 @@ void init_motor(){
 	DDRB |= (1 << PB3) | (1 << PB2) | (1 << PB1);	// Set PB3 (OC0A) as output for PWM, PB2 for brake and PB1 for direction
 	TCCR0A |= (1 << COM0A1) | (1 << WGM00);	// clear OC0A on up, set on down
 	TCCR0B |= (1 << CS01);	// prescaler 8  (will generate ~4kHz signal)
-	OCR0A = 0;
+	OCR0A = 0x50;
 }
 
 void init_servo(){
@@ -44,9 +44,8 @@ void init_servo(){
 	// prescaler = 8;
 	TCCR1A |= (1 << COM1A1) | (1 << WGM11);
 	TCCR1B |= (1 << WGM13) | (1 << WGM12) | (1 << CS11); 	 
-		
 	ICR1 = SERVO_TOP_50HZ;	// TOP-value (will generate 50 Hz signal)
-	motor_servo_data.servo_pulse_width = SERVO_START_PULSE_WIDTH;
+	motor_servo_data.servo_pulse_width = 140;
 	OCR1A = motor_servo_data.servo_pulse_width;
 }
 
