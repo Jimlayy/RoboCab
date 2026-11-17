@@ -340,30 +340,30 @@ END GROUP
  .text.uart_putchar
                 0x000000c8       0x12 main.o
                 0x000000c8                uart_putchar
- .text.init_UART
-                0x000000da       0x16 main.o
-                0x000000da                init_UART
  .text.init_ADC
-                0x000000f0        0xe main.o
-                0x000000f0                init_ADC
+                0x000000da        0xe main.o
+                0x000000da                init_ADC
  .text.sample_ADC
-                0x000000fe       0x24 main.o
-                0x000000fe                sample_ADC
+                0x000000e8       0x24 main.o
+                0x000000e8                sample_ADC
  .text.init_odometry
-                0x00000122       0x28 main.o
-                0x00000122                init_odometry
+                0x0000010c       0x28 main.o
+                0x0000010c                init_odometry
  .text.__vector_16
-                0x0000014a       0x4a main.o
-                0x0000014a                __vector_16
+                0x00000134       0x4a main.o
+                0x00000134                __vector_16
  .text.__vector_1
-                0x00000194       0x6a main.o
-                0x00000194                __vector_1
+                0x0000017e       0x6a main.o
+                0x0000017e                __vector_1
  .text.__vector_2
-                0x000001fe       0x6a main.o
-                0x000001fe                __vector_2
+                0x000001e8       0x6a main.o
+                0x000001e8                __vector_2
  .text.sample_odometry
-                0x00000268       0xee main.o
-                0x00000268                sample_odometry
+                0x00000252       0xee main.o
+                0x00000252                sample_odometry
+ .text.init_UART
+                0x00000340       0x16 main.o
+                0x00000340                init_UART
  .text.main     0x00000356       0x7e main.o
                 0x00000356                main
  .text.avr-libc
@@ -551,10 +551,10 @@ END GROUP
  .debug_abbrev  0x00000000      0x729 C:/Program Files (x86)/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.7.374/gcc/dev/atmega1284p/avr51/crtatmega1284p.o
  .debug_abbrev  0x00000729      0x301 main.o
 
-.debug_line     0x00000000      0x4c1
+.debug_line     0x00000000      0x4c5
  *(.debug_line .debug_line.* .debug_line_end)
  .debug_line    0x00000000      0x16a C:/Program Files (x86)/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.7.374/gcc/dev/atmega1284p/avr51/crtatmega1284p.o
- .debug_line    0x0000016a      0x357 main.o
+ .debug_line    0x0000016a      0x35b main.o
 
 .debug_frame    0x00000000      0x124
  *(.debug_frame)

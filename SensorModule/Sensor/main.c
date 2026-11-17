@@ -1,8 +1,22 @@
 #include "DistanceSensor.h"
 #include "Odometry.h"
 
+#define F_CPU 16000000UL
+#define BAUD 115200
 #define WHEEL_CIRCUMFERENCE_MM 120      // not measured yet (D-23): prints pulses only
 #define STOP_TIMEOUT_MS 1000          // provisional (D-25)
+
+// custom output function
+int uart_putchar(char c, FILE *stream) {   // print char to stream (UART)
+	// wait for UART to be ready
+	while (!(UCSR0A & (1<<UDRE0)));
+	UDR0 = c;
+	return 0;
+}
+
+
+// define the stream
+static FILE mystdout = FDEV_SETUP_STREAM(uart_putchar, NULL, _FDEV_SETUP_WRITE);
 
 void init_UART() {
     UBRR0H = (unsigned char) (((F_CPU/16.0/BAUD)-1+0.5)/256);
@@ -23,7 +37,7 @@ int main(void) {
 
     init_UART();
     init_odometry(); // For odometry: Pin 9 on IDC to PD2 and Pin 10 on IDC to PD3
-	init_ADC();
+	init_ADC(); // PA2
     sei();
 
     while(1) {
@@ -39,14 +53,3 @@ int main(void) {
 		//printf("%s\n", val_adc);
     }
 }
-
-// custom output function
-int uart_putchar(char c, FILE *stream) {   // print char to stream (UART)
-    // wait for UART to be ready
-    while (!(UCSR0A & (1<<UDRE0)));
-    UDR0 = c;
-    return 0;
-}
-
-// define the stream
-static FILE mystdout = FDEV_SETUP_STREAM(uart_putchar, NULL, _FDEV_SETUP_WRITE);

@@ -19,15 +19,15 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, READONLY, DEBUGGING
   7 .debug_abbrev 00000a2a  00000000  00000000  000018de  2**0
                   CONTENTS, READONLY, DEBUGGING
-  8 .debug_line   000004c1  00000000  00000000  00002308  2**0
+  8 .debug_line   000004c5  00000000  00000000  00002308  2**0
                   CONTENTS, READONLY, DEBUGGING
-  9 .debug_frame  00000124  00000000  00000000  000027cc  2**2
+  9 .debug_frame  00000124  00000000  00000000  000027d0  2**2
                   CONTENTS, READONLY, DEBUGGING
- 10 .debug_str    00000568  00000000  00000000  000028f0  2**0
+ 10 .debug_str    00000568  00000000  00000000  000028f4  2**0
                   CONTENTS, READONLY, DEBUGGING
- 11 .debug_loc    0000027c  00000000  00000000  00002e58  2**0
+ 11 .debug_loc    0000027c  00000000  00000000  00002e5c  2**0
                   CONTENTS, READONLY, DEBUGGING
- 12 .debug_ranges 00000058  00000000  00000000  000030d4  2**0
+ 12 .debug_ranges 00000058  00000000  00000000  000030d8  2**0
                   CONTENTS, READONLY, DEBUGGING
 
 Disassembly of section .text:
@@ -35,9 +35,9 @@ Disassembly of section .text:
 00000000 <__vectors>:
    0:	45 c0       	rjmp	.+138    	; 0x8c <__ctors_end>
    2:	00 00       	nop
-   4:	c7 c0       	rjmp	.+398    	; 0x194 <__vector_1>
+   4:	bc c0       	rjmp	.+376    	; 0x17e <__vector_1>
    6:	00 00       	nop
-   8:	fa c0       	rjmp	.+500    	; 0x1fe <__vector_2>
+   8:	ef c0       	rjmp	.+478    	; 0x1e8 <__vector_2>
    a:	00 00       	nop
    c:	5c c0       	rjmp	.+184    	; 0xc6 <__bad_interrupt>
    e:	00 00       	nop
@@ -65,7 +65,7 @@ Disassembly of section .text:
   3a:	00 00       	nop
   3c:	44 c0       	rjmp	.+136    	; 0xc6 <__bad_interrupt>
   3e:	00 00       	nop
-  40:	84 c0       	rjmp	.+264    	; 0x14a <__vector_16>
+  40:	79 c0       	rjmp	.+242    	; 0x134 <__vector_16>
   42:	00 00       	nop
   44:	40 c0       	rjmp	.+128    	; 0xc6 <__bad_interrupt>
   46:	00 00       	nop
@@ -147,355 +147,354 @@ Disassembly of section .text:
   c6:	9c cf       	rjmp	.-200    	; 0x0 <__vectors>
 
 000000c8 <uart_putchar>:
-}
+#define STOP_TIMEOUT_MS 1000          // provisional (D-25)
 
 // custom output function
 int uart_putchar(char c, FILE *stream) {   // print char to stream (UART)
-    // wait for UART to be ready
-    while (!(UCSR0A & (1<<UDRE0)));
+	// wait for UART to be ready
+	while (!(UCSR0A & (1<<UDRE0)));
   c8:	90 91 c0 00 	lds	r25, 0x00C0	; 0x8000c0 <__TEXT_REGION_LENGTH__+0x7e00c0>
   cc:	95 ff       	sbrs	r25, 5
   ce:	fc cf       	rjmp	.-8      	; 0xc8 <uart_putchar>
-    UDR0 = c;
+	UDR0 = c;
   d0:	80 93 c6 00 	sts	0x00C6, r24	; 0x8000c6 <__TEXT_REGION_LENGTH__+0x7e00c6>
-    return 0;
+	return 0;
 }
   d4:	80 e0       	ldi	r24, 0x00	; 0
   d6:	90 e0       	ldi	r25, 0x00	; 0
   d8:	08 95       	ret
 
-000000da <init_UART>:
+000000da <init_ADC>:
+#include <stdio.h>
+#include <stdlib.h>
 
-#define F_CPU 16000000UL
-#define BAUD 115200
-
-void init_UART() {
-    UBRR0H = (unsigned char) (((F_CPU/16.0/BAUD)-1+0.5)/256);
-  da:	10 92 c5 00 	sts	0x00C5, r1	; 0x8000c5 <__TEXT_REGION_LENGTH__+0x7e00c5>
-    UBRR0L = (unsigned char) ((F_CPU/16.0/BAUD)-1+0.5); 
-  de:	88 e0       	ldi	r24, 0x08	; 8
-  e0:	80 93 c4 00 	sts	0x00C4, r24	; 0x8000c4 <__TEXT_REGION_LENGTH__+0x7e00c4>
-    UCSR0B = (1<<TXEN0);                    // Enable TX
-  e4:	80 93 c1 00 	sts	0x00C1, r24	; 0x8000c1 <__TEXT_REGION_LENGTH__+0x7e00c1>
-    UCSR0C = (1<<UCSZ01)|(1<<UCSZ00);       // 8-bits,no parity, 1 stop bit
-  e8:	86 e0       	ldi	r24, 0x06	; 6
-  ea:	80 93 c2 00 	sts	0x00C2, r24	; 0x8000c2 <__TEXT_REGION_LENGTH__+0x7e00c2>
-  ee:	08 95       	ret
-
-000000f0 <init_ADC>:
-}
 
 void init_ADC() {
     ADMUX = (1<<REFS0)|(0<<ADLAR)|(1<<MUX1);// AVCC ref, right adjust, ADC2 input
-  f0:	82 e4       	ldi	r24, 0x42	; 66
-  f2:	80 93 7c 00 	sts	0x007C, r24	; 0x80007c <__TEXT_REGION_LENGTH__+0x7e007c>
+  da:	82 e4       	ldi	r24, 0x42	; 66
+  dc:	80 93 7c 00 	sts	0x007C, r24	; 0x80007c <__TEXT_REGION_LENGTH__+0x7e007c>
     ADCSRA = (1<<ADEN)|(7<<ADPS0);          // Enable ADC, prescaler 128
-  f6:	87 e8       	ldi	r24, 0x87	; 135
-  f8:	80 93 7a 00 	sts	0x007A, r24	; 0x80007a <__TEXT_REGION_LENGTH__+0x7e007a>
-  fc:	08 95       	ret
+  e0:	87 e8       	ldi	r24, 0x87	; 135
+  e2:	80 93 7a 00 	sts	0x007A, r24	; 0x80007a <__TEXT_REGION_LENGTH__+0x7e007a>
+  e6:	08 95       	ret
 
-000000fe <sample_ADC>:
+000000e8 <sample_ADC>:
 }
 
 int sample_ADC() {
     uint16_t val=0;
     ADCSRA |= (1<<ADSC);                    // start conversion
-  fe:	ea e7       	ldi	r30, 0x7A	; 122
- 100:	f0 e0       	ldi	r31, 0x00	; 0
- 102:	80 81       	ld	r24, Z
- 104:	80 64       	ori	r24, 0x40	; 64
- 106:	80 83       	st	Z, r24
+  e8:	ea e7       	ldi	r30, 0x7A	; 122
+  ea:	f0 e0       	ldi	r31, 0x00	; 0
+  ec:	80 81       	ld	r24, Z
+  ee:	80 64       	ori	r24, 0x40	; 64
+  f0:	80 83       	st	Z, r24
     while (ADCSRA & (1<<ADSC));             // wait for ADC done
- 108:	80 91 7a 00 	lds	r24, 0x007A	; 0x80007a <__TEXT_REGION_LENGTH__+0x7e007a>
- 10c:	86 fd       	sbrc	r24, 6
- 10e:	fc cf       	rjmp	.-8      	; 0x108 <sample_ADC+0xa>
+  f2:	80 91 7a 00 	lds	r24, 0x007A	; 0x80007a <__TEXT_REGION_LENGTH__+0x7e007a>
+  f6:	86 fd       	sbrc	r24, 6
+  f8:	fc cf       	rjmp	.-8      	; 0xf2 <sample_ADC+0xa>
     val = ADCL;                             // read low byte FIRST
- 110:	20 91 78 00 	lds	r18, 0x0078	; 0x800078 <__TEXT_REGION_LENGTH__+0x7e0078>
+  fa:	20 91 78 00 	lds	r18, 0x0078	; 0x800078 <__TEXT_REGION_LENGTH__+0x7e0078>
     val |= (ADCH<<8);                       // append high byte SECOND
- 114:	80 91 79 00 	lds	r24, 0x0079	; 0x800079 <__TEXT_REGION_LENGTH__+0x7e0079>
- 118:	90 e0       	ldi	r25, 0x00	; 0
- 11a:	98 2f       	mov	r25, r24
- 11c:	88 27       	eor	r24, r24
+  fe:	80 91 79 00 	lds	r24, 0x0079	; 0x800079 <__TEXT_REGION_LENGTH__+0x7e0079>
+ 102:	90 e0       	ldi	r25, 0x00	; 0
+ 104:	98 2f       	mov	r25, r24
+ 106:	88 27       	eor	r24, r24
     return val;
 }
- 11e:	82 2b       	or	r24, r18
- 120:	08 95       	ret
+ 108:	82 2b       	or	r24, r18
+ 10a:	08 95       	ret
 
-00000122 <init_odometry>:
+0000010c <init_odometry>:
 	uint32_t left_tslp, right_tslp; // Time since last pulse
     uint32_t now_ms;
 } odometry_sample_t;
 
 void init_odometry() {
     DDRD &= ~((1<<PD2)|(1<<PD3));
- 122:	8a b1       	in	r24, 0x0a	; 10
- 124:	83 7f       	andi	r24, 0xF3	; 243
- 126:	8a b9       	out	0x0a, r24	; 10
+ 10c:	8a b1       	in	r24, 0x0a	; 10
+ 10e:	83 7f       	andi	r24, 0xF3	; 243
+ 110:	8a b9       	out	0x0a, r24	; 10
     PORTD |= (1<<PD2)|(1<<PD3);
- 128:	8b b1       	in	r24, 0x0b	; 11
- 12a:	8c 60       	ori	r24, 0x0C	; 12
- 12c:	8b b9       	out	0x0b, r24	; 11
+ 112:	8b b1       	in	r24, 0x0b	; 11
+ 114:	8c 60       	ori	r24, 0x0C	; 12
+ 116:	8b b9       	out	0x0b, r24	; 11
     EICRA = (1<<ISC01)|(1<<ISC11); // INT0, INT1 på falling edge
- 12e:	8a e0       	ldi	r24, 0x0A	; 10
- 130:	80 93 69 00 	sts	0x0069, r24	; 0x800069 <__TEXT_REGION_LENGTH__+0x7e0069>
+ 118:	8a e0       	ldi	r24, 0x0A	; 10
+ 11a:	80 93 69 00 	sts	0x0069, r24	; 0x800069 <__TEXT_REGION_LENGTH__+0x7e0069>
     EIFR = (1<<INTF0)|(1<<INTF1);
- 134:	83 e0       	ldi	r24, 0x03	; 3
- 136:	8c bb       	out	0x1c, r24	; 28
+ 11e:	83 e0       	ldi	r24, 0x03	; 3
+ 120:	8c bb       	out	0x1c, r24	; 28
     EIMSK = (1<<INT0)|(1<<INT1);
- 138:	8d bb       	out	0x1d, r24	; 29
+ 122:	8d bb       	out	0x1d, r24	; 29
 
     TCCR0A = (1<<WGM01);
- 13a:	92 e0       	ldi	r25, 0x02	; 2
- 13c:	94 bd       	out	0x24, r25	; 36
+ 124:	92 e0       	ldi	r25, 0x02	; 2
+ 126:	94 bd       	out	0x24, r25	; 36
     TCCR0B = (1<<CS01)|(1<<CS00);
- 13e:	85 bd       	out	0x25, r24	; 37
+ 128:	85 bd       	out	0x25, r24	; 37
     OCR0A = 249;
- 140:	89 ef       	ldi	r24, 0xF9	; 249
- 142:	87 bd       	out	0x27, r24	; 39
+ 12a:	89 ef       	ldi	r24, 0xF9	; 249
+ 12c:	87 bd       	out	0x27, r24	; 39
     TIMSK0 = (1<<OCIE0A);
- 144:	90 93 6e 00 	sts	0x006E, r25	; 0x80006e <__TEXT_REGION_LENGTH__+0x7e006e>
- 148:	08 95       	ret
+ 12e:	90 93 6e 00 	sts	0x006E, r25	; 0x80006e <__TEXT_REGION_LENGTH__+0x7e006e>
+ 132:	08 95       	ret
 
-0000014a <__vector_16>:
+00000134 <__vector_16>:
 }
 
 ISR(TIMER0_COMPA_vect) { ms_counter++; }
- 14a:	1f 92       	push	r1
- 14c:	0f 92       	push	r0
- 14e:	0f b6       	in	r0, 0x3f	; 63
- 150:	0f 92       	push	r0
- 152:	11 24       	eor	r1, r1
- 154:	8f 93       	push	r24
- 156:	9f 93       	push	r25
- 158:	af 93       	push	r26
- 15a:	bf 93       	push	r27
- 15c:	80 91 52 01 	lds	r24, 0x0152	; 0x800152 <__data_end>
- 160:	90 91 53 01 	lds	r25, 0x0153	; 0x800153 <__data_end+0x1>
- 164:	a0 91 54 01 	lds	r26, 0x0154	; 0x800154 <__data_end+0x2>
- 168:	b0 91 55 01 	lds	r27, 0x0155	; 0x800155 <__data_end+0x3>
- 16c:	01 96       	adiw	r24, 0x01	; 1
- 16e:	a1 1d       	adc	r26, r1
- 170:	b1 1d       	adc	r27, r1
- 172:	80 93 52 01 	sts	0x0152, r24	; 0x800152 <__data_end>
- 176:	90 93 53 01 	sts	0x0153, r25	; 0x800153 <__data_end+0x1>
- 17a:	a0 93 54 01 	sts	0x0154, r26	; 0x800154 <__data_end+0x2>
- 17e:	b0 93 55 01 	sts	0x0155, r27	; 0x800155 <__data_end+0x3>
- 182:	bf 91       	pop	r27
- 184:	af 91       	pop	r26
- 186:	9f 91       	pop	r25
- 188:	8f 91       	pop	r24
- 18a:	0f 90       	pop	r0
- 18c:	0f be       	out	0x3f, r0	; 63
- 18e:	0f 90       	pop	r0
- 190:	1f 90       	pop	r1
- 192:	18 95       	reti
+ 134:	1f 92       	push	r1
+ 136:	0f 92       	push	r0
+ 138:	0f b6       	in	r0, 0x3f	; 63
+ 13a:	0f 92       	push	r0
+ 13c:	11 24       	eor	r1, r1
+ 13e:	8f 93       	push	r24
+ 140:	9f 93       	push	r25
+ 142:	af 93       	push	r26
+ 144:	bf 93       	push	r27
+ 146:	80 91 52 01 	lds	r24, 0x0152	; 0x800152 <__data_end>
+ 14a:	90 91 53 01 	lds	r25, 0x0153	; 0x800153 <__data_end+0x1>
+ 14e:	a0 91 54 01 	lds	r26, 0x0154	; 0x800154 <__data_end+0x2>
+ 152:	b0 91 55 01 	lds	r27, 0x0155	; 0x800155 <__data_end+0x3>
+ 156:	01 96       	adiw	r24, 0x01	; 1
+ 158:	a1 1d       	adc	r26, r1
+ 15a:	b1 1d       	adc	r27, r1
+ 15c:	80 93 52 01 	sts	0x0152, r24	; 0x800152 <__data_end>
+ 160:	90 93 53 01 	sts	0x0153, r25	; 0x800153 <__data_end+0x1>
+ 164:	a0 93 54 01 	sts	0x0154, r26	; 0x800154 <__data_end+0x2>
+ 168:	b0 93 55 01 	sts	0x0155, r27	; 0x800155 <__data_end+0x3>
+ 16c:	bf 91       	pop	r27
+ 16e:	af 91       	pop	r26
+ 170:	9f 91       	pop	r25
+ 172:	8f 91       	pop	r24
+ 174:	0f 90       	pop	r0
+ 176:	0f be       	out	0x3f, r0	; 63
+ 178:	0f 90       	pop	r0
+ 17a:	1f 90       	pop	r1
+ 17c:	18 95       	reti
 
-00000194 <__vector_1>:
+0000017e <__vector_1>:
 
 ISR(INT0_vect) { left_pulses++; left_last_ms = ms_counter; }
- 194:	1f 92       	push	r1
- 196:	0f 92       	push	r0
- 198:	0f b6       	in	r0, 0x3f	; 63
- 19a:	0f 92       	push	r0
- 19c:	11 24       	eor	r1, r1
- 19e:	8f 93       	push	r24
- 1a0:	9f 93       	push	r25
- 1a2:	af 93       	push	r26
- 1a4:	bf 93       	push	r27
- 1a6:	80 91 62 01 	lds	r24, 0x0162	; 0x800162 <left_pulses>
- 1aa:	90 91 63 01 	lds	r25, 0x0163	; 0x800163 <left_pulses+0x1>
- 1ae:	a0 91 64 01 	lds	r26, 0x0164	; 0x800164 <left_pulses+0x2>
- 1b2:	b0 91 65 01 	lds	r27, 0x0165	; 0x800165 <left_pulses+0x3>
- 1b6:	01 96       	adiw	r24, 0x01	; 1
- 1b8:	a1 1d       	adc	r26, r1
- 1ba:	b1 1d       	adc	r27, r1
- 1bc:	80 93 62 01 	sts	0x0162, r24	; 0x800162 <left_pulses>
- 1c0:	90 93 63 01 	sts	0x0163, r25	; 0x800163 <left_pulses+0x1>
- 1c4:	a0 93 64 01 	sts	0x0164, r26	; 0x800164 <left_pulses+0x2>
- 1c8:	b0 93 65 01 	sts	0x0165, r27	; 0x800165 <left_pulses+0x3>
- 1cc:	80 91 52 01 	lds	r24, 0x0152	; 0x800152 <__data_end>
- 1d0:	90 91 53 01 	lds	r25, 0x0153	; 0x800153 <__data_end+0x1>
- 1d4:	a0 91 54 01 	lds	r26, 0x0154	; 0x800154 <__data_end+0x2>
- 1d8:	b0 91 55 01 	lds	r27, 0x0155	; 0x800155 <__data_end+0x3>
- 1dc:	80 93 5a 01 	sts	0x015A, r24	; 0x80015a <left_last_ms>
- 1e0:	90 93 5b 01 	sts	0x015B, r25	; 0x80015b <left_last_ms+0x1>
- 1e4:	a0 93 5c 01 	sts	0x015C, r26	; 0x80015c <left_last_ms+0x2>
- 1e8:	b0 93 5d 01 	sts	0x015D, r27	; 0x80015d <left_last_ms+0x3>
- 1ec:	bf 91       	pop	r27
- 1ee:	af 91       	pop	r26
- 1f0:	9f 91       	pop	r25
- 1f2:	8f 91       	pop	r24
- 1f4:	0f 90       	pop	r0
- 1f6:	0f be       	out	0x3f, r0	; 63
- 1f8:	0f 90       	pop	r0
- 1fa:	1f 90       	pop	r1
- 1fc:	18 95       	reti
+ 17e:	1f 92       	push	r1
+ 180:	0f 92       	push	r0
+ 182:	0f b6       	in	r0, 0x3f	; 63
+ 184:	0f 92       	push	r0
+ 186:	11 24       	eor	r1, r1
+ 188:	8f 93       	push	r24
+ 18a:	9f 93       	push	r25
+ 18c:	af 93       	push	r26
+ 18e:	bf 93       	push	r27
+ 190:	80 91 62 01 	lds	r24, 0x0162	; 0x800162 <left_pulses>
+ 194:	90 91 63 01 	lds	r25, 0x0163	; 0x800163 <left_pulses+0x1>
+ 198:	a0 91 64 01 	lds	r26, 0x0164	; 0x800164 <left_pulses+0x2>
+ 19c:	b0 91 65 01 	lds	r27, 0x0165	; 0x800165 <left_pulses+0x3>
+ 1a0:	01 96       	adiw	r24, 0x01	; 1
+ 1a2:	a1 1d       	adc	r26, r1
+ 1a4:	b1 1d       	adc	r27, r1
+ 1a6:	80 93 62 01 	sts	0x0162, r24	; 0x800162 <left_pulses>
+ 1aa:	90 93 63 01 	sts	0x0163, r25	; 0x800163 <left_pulses+0x1>
+ 1ae:	a0 93 64 01 	sts	0x0164, r26	; 0x800164 <left_pulses+0x2>
+ 1b2:	b0 93 65 01 	sts	0x0165, r27	; 0x800165 <left_pulses+0x3>
+ 1b6:	80 91 52 01 	lds	r24, 0x0152	; 0x800152 <__data_end>
+ 1ba:	90 91 53 01 	lds	r25, 0x0153	; 0x800153 <__data_end+0x1>
+ 1be:	a0 91 54 01 	lds	r26, 0x0154	; 0x800154 <__data_end+0x2>
+ 1c2:	b0 91 55 01 	lds	r27, 0x0155	; 0x800155 <__data_end+0x3>
+ 1c6:	80 93 5a 01 	sts	0x015A, r24	; 0x80015a <left_last_ms>
+ 1ca:	90 93 5b 01 	sts	0x015B, r25	; 0x80015b <left_last_ms+0x1>
+ 1ce:	a0 93 5c 01 	sts	0x015C, r26	; 0x80015c <left_last_ms+0x2>
+ 1d2:	b0 93 5d 01 	sts	0x015D, r27	; 0x80015d <left_last_ms+0x3>
+ 1d6:	bf 91       	pop	r27
+ 1d8:	af 91       	pop	r26
+ 1da:	9f 91       	pop	r25
+ 1dc:	8f 91       	pop	r24
+ 1de:	0f 90       	pop	r0
+ 1e0:	0f be       	out	0x3f, r0	; 63
+ 1e2:	0f 90       	pop	r0
+ 1e4:	1f 90       	pop	r1
+ 1e6:	18 95       	reti
 
-000001fe <__vector_2>:
+000001e8 <__vector_2>:
 ISR(INT1_vect) { right_pulses++; right_last_ms = ms_counter; }
- 1fe:	1f 92       	push	r1
- 200:	0f 92       	push	r0
- 202:	0f b6       	in	r0, 0x3f	; 63
- 204:	0f 92       	push	r0
- 206:	11 24       	eor	r1, r1
- 208:	8f 93       	push	r24
- 20a:	9f 93       	push	r25
- 20c:	af 93       	push	r26
- 20e:	bf 93       	push	r27
- 210:	80 91 5e 01 	lds	r24, 0x015E	; 0x80015e <right_pulses>
- 214:	90 91 5f 01 	lds	r25, 0x015F	; 0x80015f <right_pulses+0x1>
- 218:	a0 91 60 01 	lds	r26, 0x0160	; 0x800160 <right_pulses+0x2>
- 21c:	b0 91 61 01 	lds	r27, 0x0161	; 0x800161 <right_pulses+0x3>
- 220:	01 96       	adiw	r24, 0x01	; 1
- 222:	a1 1d       	adc	r26, r1
- 224:	b1 1d       	adc	r27, r1
- 226:	80 93 5e 01 	sts	0x015E, r24	; 0x80015e <right_pulses>
- 22a:	90 93 5f 01 	sts	0x015F, r25	; 0x80015f <right_pulses+0x1>
- 22e:	a0 93 60 01 	sts	0x0160, r26	; 0x800160 <right_pulses+0x2>
- 232:	b0 93 61 01 	sts	0x0161, r27	; 0x800161 <right_pulses+0x3>
- 236:	80 91 52 01 	lds	r24, 0x0152	; 0x800152 <__data_end>
- 23a:	90 91 53 01 	lds	r25, 0x0153	; 0x800153 <__data_end+0x1>
- 23e:	a0 91 54 01 	lds	r26, 0x0154	; 0x800154 <__data_end+0x2>
- 242:	b0 91 55 01 	lds	r27, 0x0155	; 0x800155 <__data_end+0x3>
- 246:	80 93 56 01 	sts	0x0156, r24	; 0x800156 <right_last_ms>
- 24a:	90 93 57 01 	sts	0x0157, r25	; 0x800157 <right_last_ms+0x1>
- 24e:	a0 93 58 01 	sts	0x0158, r26	; 0x800158 <right_last_ms+0x2>
- 252:	b0 93 59 01 	sts	0x0159, r27	; 0x800159 <right_last_ms+0x3>
- 256:	bf 91       	pop	r27
- 258:	af 91       	pop	r26
- 25a:	9f 91       	pop	r25
- 25c:	8f 91       	pop	r24
- 25e:	0f 90       	pop	r0
- 260:	0f be       	out	0x3f, r0	; 63
- 262:	0f 90       	pop	r0
- 264:	1f 90       	pop	r1
- 266:	18 95       	reti
+ 1e8:	1f 92       	push	r1
+ 1ea:	0f 92       	push	r0
+ 1ec:	0f b6       	in	r0, 0x3f	; 63
+ 1ee:	0f 92       	push	r0
+ 1f0:	11 24       	eor	r1, r1
+ 1f2:	8f 93       	push	r24
+ 1f4:	9f 93       	push	r25
+ 1f6:	af 93       	push	r26
+ 1f8:	bf 93       	push	r27
+ 1fa:	80 91 5e 01 	lds	r24, 0x015E	; 0x80015e <right_pulses>
+ 1fe:	90 91 5f 01 	lds	r25, 0x015F	; 0x80015f <right_pulses+0x1>
+ 202:	a0 91 60 01 	lds	r26, 0x0160	; 0x800160 <right_pulses+0x2>
+ 206:	b0 91 61 01 	lds	r27, 0x0161	; 0x800161 <right_pulses+0x3>
+ 20a:	01 96       	adiw	r24, 0x01	; 1
+ 20c:	a1 1d       	adc	r26, r1
+ 20e:	b1 1d       	adc	r27, r1
+ 210:	80 93 5e 01 	sts	0x015E, r24	; 0x80015e <right_pulses>
+ 214:	90 93 5f 01 	sts	0x015F, r25	; 0x80015f <right_pulses+0x1>
+ 218:	a0 93 60 01 	sts	0x0160, r26	; 0x800160 <right_pulses+0x2>
+ 21c:	b0 93 61 01 	sts	0x0161, r27	; 0x800161 <right_pulses+0x3>
+ 220:	80 91 52 01 	lds	r24, 0x0152	; 0x800152 <__data_end>
+ 224:	90 91 53 01 	lds	r25, 0x0153	; 0x800153 <__data_end+0x1>
+ 228:	a0 91 54 01 	lds	r26, 0x0154	; 0x800154 <__data_end+0x2>
+ 22c:	b0 91 55 01 	lds	r27, 0x0155	; 0x800155 <__data_end+0x3>
+ 230:	80 93 56 01 	sts	0x0156, r24	; 0x800156 <right_last_ms>
+ 234:	90 93 57 01 	sts	0x0157, r25	; 0x800157 <right_last_ms+0x1>
+ 238:	a0 93 58 01 	sts	0x0158, r26	; 0x800158 <right_last_ms+0x2>
+ 23c:	b0 93 59 01 	sts	0x0159, r27	; 0x800159 <right_last_ms+0x3>
+ 240:	bf 91       	pop	r27
+ 242:	af 91       	pop	r26
+ 244:	9f 91       	pop	r25
+ 246:	8f 91       	pop	r24
+ 248:	0f 90       	pop	r0
+ 24a:	0f be       	out	0x3f, r0	; 63
+ 24c:	0f 90       	pop	r0
+ 24e:	1f 90       	pop	r1
+ 250:	18 95       	reti
 
-00000268 <sample_odometry>:
+00000252 <sample_odometry>:
 
 odometry_sample_t sample_odometry() {
- 268:	fc 01       	movw	r30, r24
+ 252:	fc 01       	movw	r30, r24
     odometry_sample_t sample;
     ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
- 26a:	2f b7       	in	r18, 0x3f	; 63
+ 254:	2f b7       	in	r18, 0x3f	; 63
     return 1;
 }
 
 static __inline__ uint8_t __iCliRetVal(void)
 {
     cli();
- 26c:	f8 94       	cli
- 26e:	81 e0       	ldi	r24, 0x01	; 1
- 270:	6d c0       	rjmp	.+218    	; 0x34c <sample_odometry+0xe4>
+ 256:	f8 94       	cli
+ 258:	81 e0       	ldi	r24, 0x01	; 1
+ 25a:	6d c0       	rjmp	.+218    	; 0x336 <sample_odometry+0xe4>
         sample.left_pulses = left_pulses;
- 272:	80 91 62 01 	lds	r24, 0x0162	; 0x800162 <left_pulses>
- 276:	90 91 63 01 	lds	r25, 0x0163	; 0x800163 <left_pulses+0x1>
- 27a:	a0 91 64 01 	lds	r26, 0x0164	; 0x800164 <left_pulses+0x2>
- 27e:	b0 91 65 01 	lds	r27, 0x0165	; 0x800165 <left_pulses+0x3>
- 282:	80 83       	st	Z, r24
- 284:	91 83       	std	Z+1, r25	; 0x01
- 286:	a2 83       	std	Z+2, r26	; 0x02
- 288:	b3 83       	std	Z+3, r27	; 0x03
+ 25c:	80 91 62 01 	lds	r24, 0x0162	; 0x800162 <left_pulses>
+ 260:	90 91 63 01 	lds	r25, 0x0163	; 0x800163 <left_pulses+0x1>
+ 264:	a0 91 64 01 	lds	r26, 0x0164	; 0x800164 <left_pulses+0x2>
+ 268:	b0 91 65 01 	lds	r27, 0x0165	; 0x800165 <left_pulses+0x3>
+ 26c:	80 83       	st	Z, r24
+ 26e:	91 83       	std	Z+1, r25	; 0x01
+ 270:	a2 83       	std	Z+2, r26	; 0x02
+ 272:	b3 83       	std	Z+3, r27	; 0x03
         sample.right_pulses = right_pulses;
- 28a:	80 91 5e 01 	lds	r24, 0x015E	; 0x80015e <right_pulses>
- 28e:	90 91 5f 01 	lds	r25, 0x015F	; 0x80015f <right_pulses+0x1>
- 292:	a0 91 60 01 	lds	r26, 0x0160	; 0x800160 <right_pulses+0x2>
- 296:	b0 91 61 01 	lds	r27, 0x0161	; 0x800161 <right_pulses+0x3>
- 29a:	84 83       	std	Z+4, r24	; 0x04
- 29c:	95 83       	std	Z+5, r25	; 0x05
- 29e:	a6 83       	std	Z+6, r26	; 0x06
- 2a0:	b7 83       	std	Z+7, r27	; 0x07
+ 274:	80 91 5e 01 	lds	r24, 0x015E	; 0x80015e <right_pulses>
+ 278:	90 91 5f 01 	lds	r25, 0x015F	; 0x80015f <right_pulses+0x1>
+ 27c:	a0 91 60 01 	lds	r26, 0x0160	; 0x800160 <right_pulses+0x2>
+ 280:	b0 91 61 01 	lds	r27, 0x0161	; 0x800161 <right_pulses+0x3>
+ 284:	84 83       	std	Z+4, r24	; 0x04
+ 286:	95 83       	std	Z+5, r25	; 0x05
+ 288:	a6 83       	std	Z+6, r26	; 0x06
+ 28a:	b7 83       	std	Z+7, r27	; 0x07
         sample.left_last_ms = left_last_ms;
- 2a2:	80 91 5a 01 	lds	r24, 0x015A	; 0x80015a <left_last_ms>
- 2a6:	90 91 5b 01 	lds	r25, 0x015B	; 0x80015b <left_last_ms+0x1>
- 2aa:	a0 91 5c 01 	lds	r26, 0x015C	; 0x80015c <left_last_ms+0x2>
- 2ae:	b0 91 5d 01 	lds	r27, 0x015D	; 0x80015d <left_last_ms+0x3>
- 2b2:	80 87       	std	Z+8, r24	; 0x08
- 2b4:	91 87       	std	Z+9, r25	; 0x09
- 2b6:	a2 87       	std	Z+10, r26	; 0x0a
- 2b8:	b3 87       	std	Z+11, r27	; 0x0b
+ 28c:	80 91 5a 01 	lds	r24, 0x015A	; 0x80015a <left_last_ms>
+ 290:	90 91 5b 01 	lds	r25, 0x015B	; 0x80015b <left_last_ms+0x1>
+ 294:	a0 91 5c 01 	lds	r26, 0x015C	; 0x80015c <left_last_ms+0x2>
+ 298:	b0 91 5d 01 	lds	r27, 0x015D	; 0x80015d <left_last_ms+0x3>
+ 29c:	80 87       	std	Z+8, r24	; 0x08
+ 29e:	91 87       	std	Z+9, r25	; 0x09
+ 2a0:	a2 87       	std	Z+10, r26	; 0x0a
+ 2a2:	b3 87       	std	Z+11, r27	; 0x0b
         sample.right_last_ms = right_last_ms;
- 2ba:	80 91 56 01 	lds	r24, 0x0156	; 0x800156 <right_last_ms>
- 2be:	90 91 57 01 	lds	r25, 0x0157	; 0x800157 <right_last_ms+0x1>
- 2c2:	a0 91 58 01 	lds	r26, 0x0158	; 0x800158 <right_last_ms+0x2>
- 2c6:	b0 91 59 01 	lds	r27, 0x0159	; 0x800159 <right_last_ms+0x3>
- 2ca:	84 87       	std	Z+12, r24	; 0x0c
- 2cc:	95 87       	std	Z+13, r25	; 0x0d
- 2ce:	a6 87       	std	Z+14, r26	; 0x0e
- 2d0:	b7 87       	std	Z+15, r27	; 0x0f
+ 2a4:	80 91 56 01 	lds	r24, 0x0156	; 0x800156 <right_last_ms>
+ 2a8:	90 91 57 01 	lds	r25, 0x0157	; 0x800157 <right_last_ms+0x1>
+ 2ac:	a0 91 58 01 	lds	r26, 0x0158	; 0x800158 <right_last_ms+0x2>
+ 2b0:	b0 91 59 01 	lds	r27, 0x0159	; 0x800159 <right_last_ms+0x3>
+ 2b4:	84 87       	std	Z+12, r24	; 0x0c
+ 2b6:	95 87       	std	Z+13, r25	; 0x0d
+ 2b8:	a6 87       	std	Z+14, r26	; 0x0e
+ 2ba:	b7 87       	std	Z+15, r27	; 0x0f
 		sample.left_tslp = ms_counter - left_last_ms;
- 2d2:	80 91 52 01 	lds	r24, 0x0152	; 0x800152 <__data_end>
- 2d6:	90 91 53 01 	lds	r25, 0x0153	; 0x800153 <__data_end+0x1>
- 2da:	a0 91 54 01 	lds	r26, 0x0154	; 0x800154 <__data_end+0x2>
- 2de:	b0 91 55 01 	lds	r27, 0x0155	; 0x800155 <__data_end+0x3>
- 2e2:	40 91 5a 01 	lds	r20, 0x015A	; 0x80015a <left_last_ms>
- 2e6:	50 91 5b 01 	lds	r21, 0x015B	; 0x80015b <left_last_ms+0x1>
- 2ea:	60 91 5c 01 	lds	r22, 0x015C	; 0x80015c <left_last_ms+0x2>
- 2ee:	70 91 5d 01 	lds	r23, 0x015D	; 0x80015d <left_last_ms+0x3>
- 2f2:	84 1b       	sub	r24, r20
- 2f4:	95 0b       	sbc	r25, r21
- 2f6:	a6 0b       	sbc	r26, r22
- 2f8:	b7 0b       	sbc	r27, r23
- 2fa:	80 8b       	std	Z+16, r24	; 0x10
- 2fc:	91 8b       	std	Z+17, r25	; 0x11
- 2fe:	a2 8b       	std	Z+18, r26	; 0x12
- 300:	b3 8b       	std	Z+19, r27	; 0x13
+ 2bc:	80 91 52 01 	lds	r24, 0x0152	; 0x800152 <__data_end>
+ 2c0:	90 91 53 01 	lds	r25, 0x0153	; 0x800153 <__data_end+0x1>
+ 2c4:	a0 91 54 01 	lds	r26, 0x0154	; 0x800154 <__data_end+0x2>
+ 2c8:	b0 91 55 01 	lds	r27, 0x0155	; 0x800155 <__data_end+0x3>
+ 2cc:	40 91 5a 01 	lds	r20, 0x015A	; 0x80015a <left_last_ms>
+ 2d0:	50 91 5b 01 	lds	r21, 0x015B	; 0x80015b <left_last_ms+0x1>
+ 2d4:	60 91 5c 01 	lds	r22, 0x015C	; 0x80015c <left_last_ms+0x2>
+ 2d8:	70 91 5d 01 	lds	r23, 0x015D	; 0x80015d <left_last_ms+0x3>
+ 2dc:	84 1b       	sub	r24, r20
+ 2de:	95 0b       	sbc	r25, r21
+ 2e0:	a6 0b       	sbc	r26, r22
+ 2e2:	b7 0b       	sbc	r27, r23
+ 2e4:	80 8b       	std	Z+16, r24	; 0x10
+ 2e6:	91 8b       	std	Z+17, r25	; 0x11
+ 2e8:	a2 8b       	std	Z+18, r26	; 0x12
+ 2ea:	b3 8b       	std	Z+19, r27	; 0x13
 		sample.right_tslp = ms_counter - right_last_ms;
- 302:	80 91 52 01 	lds	r24, 0x0152	; 0x800152 <__data_end>
- 306:	90 91 53 01 	lds	r25, 0x0153	; 0x800153 <__data_end+0x1>
- 30a:	a0 91 54 01 	lds	r26, 0x0154	; 0x800154 <__data_end+0x2>
- 30e:	b0 91 55 01 	lds	r27, 0x0155	; 0x800155 <__data_end+0x3>
- 312:	40 91 56 01 	lds	r20, 0x0156	; 0x800156 <right_last_ms>
- 316:	50 91 57 01 	lds	r21, 0x0157	; 0x800157 <right_last_ms+0x1>
- 31a:	60 91 58 01 	lds	r22, 0x0158	; 0x800158 <right_last_ms+0x2>
- 31e:	70 91 59 01 	lds	r23, 0x0159	; 0x800159 <right_last_ms+0x3>
- 322:	84 1b       	sub	r24, r20
- 324:	95 0b       	sbc	r25, r21
- 326:	a6 0b       	sbc	r26, r22
- 328:	b7 0b       	sbc	r27, r23
- 32a:	84 8b       	std	Z+20, r24	; 0x14
- 32c:	95 8b       	std	Z+21, r25	; 0x15
- 32e:	a6 8b       	std	Z+22, r26	; 0x16
- 330:	b7 8b       	std	Z+23, r27	; 0x17
+ 2ec:	80 91 52 01 	lds	r24, 0x0152	; 0x800152 <__data_end>
+ 2f0:	90 91 53 01 	lds	r25, 0x0153	; 0x800153 <__data_end+0x1>
+ 2f4:	a0 91 54 01 	lds	r26, 0x0154	; 0x800154 <__data_end+0x2>
+ 2f8:	b0 91 55 01 	lds	r27, 0x0155	; 0x800155 <__data_end+0x3>
+ 2fc:	40 91 56 01 	lds	r20, 0x0156	; 0x800156 <right_last_ms>
+ 300:	50 91 57 01 	lds	r21, 0x0157	; 0x800157 <right_last_ms+0x1>
+ 304:	60 91 58 01 	lds	r22, 0x0158	; 0x800158 <right_last_ms+0x2>
+ 308:	70 91 59 01 	lds	r23, 0x0159	; 0x800159 <right_last_ms+0x3>
+ 30c:	84 1b       	sub	r24, r20
+ 30e:	95 0b       	sbc	r25, r21
+ 310:	a6 0b       	sbc	r26, r22
+ 312:	b7 0b       	sbc	r27, r23
+ 314:	84 8b       	std	Z+20, r24	; 0x14
+ 316:	95 8b       	std	Z+21, r25	; 0x15
+ 318:	a6 8b       	std	Z+22, r26	; 0x16
+ 31a:	b7 8b       	std	Z+23, r27	; 0x17
         sample.now_ms = ms_counter;
- 332:	80 91 52 01 	lds	r24, 0x0152	; 0x800152 <__data_end>
- 336:	90 91 53 01 	lds	r25, 0x0153	; 0x800153 <__data_end+0x1>
- 33a:	a0 91 54 01 	lds	r26, 0x0154	; 0x800154 <__data_end+0x2>
- 33e:	b0 91 55 01 	lds	r27, 0x0155	; 0x800155 <__data_end+0x3>
- 342:	80 8f       	std	Z+24, r24	; 0x18
- 344:	91 8f       	std	Z+25, r25	; 0x19
- 346:	a2 8f       	std	Z+26, r26	; 0x1a
- 348:	b3 8f       	std	Z+27, r27	; 0x1b
+ 31c:	80 91 52 01 	lds	r24, 0x0152	; 0x800152 <__data_end>
+ 320:	90 91 53 01 	lds	r25, 0x0153	; 0x800153 <__data_end+0x1>
+ 324:	a0 91 54 01 	lds	r26, 0x0154	; 0x800154 <__data_end+0x2>
+ 328:	b0 91 55 01 	lds	r27, 0x0155	; 0x800155 <__data_end+0x3>
+ 32c:	80 8f       	std	Z+24, r24	; 0x18
+ 32e:	91 8f       	std	Z+25, r25	; 0x19
+ 330:	a2 8f       	std	Z+26, r26	; 0x1a
+ 332:	b3 8f       	std	Z+27, r27	; 0x1b
 ISR(INT0_vect) { left_pulses++; left_last_ms = ms_counter; }
 ISR(INT1_vect) { right_pulses++; right_last_ms = ms_counter; }
 
 odometry_sample_t sample_odometry() {
     odometry_sample_t sample;
     ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
- 34a:	80 e0       	ldi	r24, 0x00	; 0
- 34c:	81 11       	cpse	r24, r1
- 34e:	91 cf       	rjmp	.-222    	; 0x272 <sample_odometry+0xa>
+ 334:	80 e0       	ldi	r24, 0x00	; 0
+ 336:	81 11       	cpse	r24, r1
+ 338:	91 cf       	rjmp	.-222    	; 0x25c <sample_odometry+0xa>
     (void)__s;
 }
 
 static __inline__ void __iRestore(const  uint8_t *__s)
 {
     SREG = *__s;
- 350:	2f bf       	out	0x3f, r18	; 63
+ 33a:	2f bf       	out	0x3f, r18	; 63
 		sample.left_tslp = ms_counter - left_last_ms;
 		sample.right_tslp = ms_counter - right_last_ms;
         sample.now_ms = ms_counter;
     }
     return sample;
 }
- 352:	cf 01       	movw	r24, r30
+ 33c:	cf 01       	movw	r24, r30
+ 33e:	08 95       	ret
+
+00000340 <init_UART>:
+
+// define the stream
+static FILE mystdout = FDEV_SETUP_STREAM(uart_putchar, NULL, _FDEV_SETUP_WRITE);
+
+void init_UART() {
+    UBRR0H = (unsigned char) (((F_CPU/16.0/BAUD)-1+0.5)/256);
+ 340:	10 92 c5 00 	sts	0x00C5, r1	; 0x8000c5 <__TEXT_REGION_LENGTH__+0x7e00c5>
+    UBRR0L = (unsigned char) ((F_CPU/16.0/BAUD)-1+0.5); 
+ 344:	88 e0       	ldi	r24, 0x08	; 8
+ 346:	80 93 c4 00 	sts	0x00C4, r24	; 0x8000c4 <__TEXT_REGION_LENGTH__+0x7e00c4>
+    UCSR0B = (1<<TXEN0);                    // Enable TX
+ 34a:	80 93 c1 00 	sts	0x00C1, r24	; 0x8000c1 <__TEXT_REGION_LENGTH__+0x7e00c1>
+    UCSR0C = (1<<UCSZ01)|(1<<UCSZ00);       // 8-bits,no parity, 1 stop bit
+ 34e:	86 e0       	ldi	r24, 0x06	; 6
+ 350:	80 93 c2 00 	sts	0x00C2, r24	; 0x8000c2 <__TEXT_REGION_LENGTH__+0x7e00c2>
  354:	08 95       	ret
 
 00000356 <main>:
-#include "Odometry.h"
-
-#define WHEEL_CIRCUMFERENCE_MM 120      // not measured yet (D-23): prints pulses only
-#define STOP_TIMEOUT_MS 1000          // provisional (D-25)
+}
 
 int main(void) {
  356:	cf 93       	push	r28
@@ -520,22 +519,22 @@ int main(void) {
  372:	80 93 68 01 	sts	0x0168, r24	; 0x800168 <__iob+0x2>
 
     init_UART();
- 376:	b1 de       	rcall	.-670    	; 0xda <init_UART>
+ 376:	e4 df       	rcall	.-56     	; 0x340 <init_UART>
     init_odometry(); // For odometry: Pin 9 on IDC to PD2 and Pin 10 on IDC to PD3
- 378:	d4 de       	rcall	.-600    	; 0x122 <init_odometry>
+ 378:	c9 de       	rcall	.-622    	; 0x10c <init_odometry>
 	init_ADC();
- 37a:	ba de       	rcall	.-652    	; 0xf0 <init_ADC>
+ 37a:	af de       	rcall	.-674    	; 0xda <init_ADC>
     sei();
  37c:	78 94       	sei
 
     while(1) {
         dist = sample_ADC();
- 37e:	bf de       	rcall	.-642    	; 0xfe <sample_ADC>
+ 37e:	b4 de       	rcall	.-664    	; 0xe8 <sample_ADC>
  380:	8c 01       	movw	r16, r24
 		odo = sample_odometry();
  382:	ce 01       	movw	r24, r28
  384:	01 96       	adiw	r24, 0x01	; 1
- 386:	70 df       	rcall	.-288    	; 0x268 <sample_odometry>
+ 386:	65 df       	rcall	.-310    	; 0x252 <sample_odometry>
  388:	4a e0       	ldi	r20, 0x0A	; 10
     } else if (__radix < 2 || __radix > 36) {
 	*__s = 0;

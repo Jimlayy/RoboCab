@@ -15,8 +15,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define F_CPU 16000000UL
-#define BAUD 115200
 
 void init_ADC() {
     ADMUX = (1<<REFS0)|(0<<ADLAR)|(1<<MUX1);// AVCC ref, right adjust, ADC2 input
