@@ -9,7 +9,7 @@ uint8_t rx_tail = 0;
 volatile uint8_t rx_head = 0;
 volatile uint8_t rx_recieve_buffer[UART_MAX_PAYLOAD_LENGTH];
 parser_t uart_parser;
-uint8_t message_id = 0;
+int16_t message_id = 0;
 
 int main(void) {
 	sei();	// enable global interrupts	
@@ -30,7 +30,7 @@ int main(void) {
 			message_id = parser_feed(&uart_parser, byte);
 		}
 
-		if (message_id != 0) {
+		if (message_id >= 0) {
 			switch (message_id)
 			{
 			case MOTOR_SERVO_MSG_ID:
