@@ -25,7 +25,7 @@ with serial.Serial(PORT, BAUD, timeout=0.5) as ser:
     time.sleep(1.5)  # Allow time if opening the port resets the AVR
 
     for direction in (0, 1):
-        for speed in (0x00, 0x80, 0xF8):
+        for speed in (0x00, 0x10, 0x20):
             # Sweeps 125 (1000 us) to 250 (2000 us) in steps of 25 ticks
             # (Change to range(1000, 2001, 250) if your firmware expects microseconds)
             for ticks in range(125, 251, 25):

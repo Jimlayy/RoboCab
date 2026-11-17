@@ -32,13 +32,8 @@ static PID_PARAMS pid_params = {0};
 void init_motor(){
 	DDRB |= (1 << PB3) | (1 << PB2) | (1 << PB1);	// Set PB3 (OC0A) as output for PWM, PB2 for brake and PB1 for direction
 	TCCR0A |= (1 << COM0A1) | (1 << WGM00);	// clear OC0A on up, set on down
-<<<<<<< HEAD
-	TCCR0B |= (1 << CS01);	// prescaler 8  (will generate ~4kHz signal)
-	OCR0A = 0x50;
-=======
 	TCCR0B |= (1 << CS01) | (1 << CS00);	// prescaler 64  (will generate ~490 Hz signal)    MAX 2KHz
 	OCR0A = 0;
->>>>>>> 25f58a2 (debug prints work, boundary checks complete)
 }
 
 void init_servo(){

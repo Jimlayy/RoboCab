@@ -56,10 +56,5 @@ ISR(USART0_RX_vect){
 	}
 
 	rx_recieve_buffer[rx_head] = UDR0;
-<<<<<<< HEAD
-	printf("%u\n", rx_recieve_buffer[rx_head]);
-	OCR0A = 0xF8;
-=======
->>>>>>> 25f58a2 (debug prints work, boundary checks complete)
 	rx_head = (rx_head + 1) % UART_MAX_PAYLOAD_LENGTH;
 }

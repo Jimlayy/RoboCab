@@ -2,10 +2,15 @@
 
 #include "uart_definitions.h"
 #include <stdbool.h>
+#include <stdio.h>
+#include <avr/io.h>
 
 //UART
 #define MYUBBR ((F_CPU / 8UL + BAUD_RATE / 2) / BAUD_RATE - 1)
 #define MESSAGE_ID_IDX 0
+
+void init_custom_stdout();
+int uart_putchar(char c, FILE *stream);
 
 typedef enum {
     MOTOR_SERVO_MSG_ID = 1,
