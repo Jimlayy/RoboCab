@@ -34,6 +34,7 @@ void command_data_get(command_data_t *out)
 /* Parses one command and updates the shared struct */
 static void save_command(const char *cmd)
 {
+    printf("Saving command\n");
     char start[32], goal[32];
 
     pthread_mutex_lock(&lock);

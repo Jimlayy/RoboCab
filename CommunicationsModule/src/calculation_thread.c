@@ -20,6 +20,7 @@
 #include "sensor_data.h"
 #include "packet_handler.h"
 #include <signal.h>
+#include <stdbool.h>
 //#include "graph.h"
 
 #define PERIOD_MS     50     // 20 decisions per second
@@ -32,7 +33,6 @@ typedef struct {
     float dist_on_edge;   // distance driven since from_node (odometry), in cm
     int route_index;      // where in the planned route list we are
 } car_state_t;
-
 
 typedef struct {
     int steering_fd;
@@ -55,17 +55,23 @@ static void manual_directive(drive_cmd_t d, int16_t *speed, int16_t *angle)
 static void wait_next_period(struct timespec *next)
 {
     next->tv_nsec += PERIOD_MS * 1000000L;
-    if (next->tv_nsec >= 1000000000L) { next->tv_sec++; next->tv_nsec -= 1000000000L; }
+    if (next->tv_nsec >= 1000000000L) {
+        next->tv_sec++; next->tv_nsec -= 1000000000L; }
     clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, next, NULL);
 }
 
-void *calculation_thread(void *arg)
+void *calculation_thread(void *ctx)
 {
-    calc_args_t *a = arg;
+    //context need from main
+    calc_args_t *a = ctx;
+    //data acquired from sensors
     command_data_t cmd;
     sensor_data_t  sd;
+    //parameters to send to the steering module. Angle is 1000 to 2000 where 1500 is middle.
+    bool direction, brake;
     int16_t speed, angle;
 
+    // get the current time and set the clock to it
     struct timespec next;
     clock_gettime(CLOCK_MONOTONIC, &next);
 
