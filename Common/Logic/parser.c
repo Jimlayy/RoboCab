@@ -24,7 +24,7 @@ int16_t parser_feed(void *ctx, uint8_t byte)
     case PENDING_HEADER:
         if (byte == UART_HEADER_BYTE){
             p->state = PENDING_LENGTH;
-            return_status = byte;
+            return_status = SUCCESSFUL_BYTE;
         }
         break;                          // any other byte is ignored
 
@@ -35,14 +35,14 @@ int16_t parser_feed(void *ctx, uint8_t byte)
             parser_reset(p);
             p->length = byte;
             p->state  = PARSE_DATABYTE;
-            return_status = byte;
+            return_status = SUCCESSFUL_BYTE;
         }
         break;
 
     case PARSE_DATABYTE:
         p->checksum = p->checksum ^ byte;
         p->payload[p->index++] = byte; 
-        return_status = byte;
+        return_status = SUCCESSFUL_BYTE;
         if (p->index == p->length)
             p->state = PENDING_CHECKSUM;
         break; 
@@ -51,7 +51,7 @@ int16_t parser_feed(void *ctx, uint8_t byte)
         p->state = PENDING_HEADER; //Drop the packet if the checksum is not the same  
         if (p->checksum == byte){
             p->on_packet(p->payload, p->length);
-            return_status = byte;
+            return_status = p->payload[0];  // return message id when succesfull packet has been sent
         }
     }
     return return_status;
