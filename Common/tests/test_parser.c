@@ -21,9 +21,9 @@ static void on_packet(const uint8_t *data, uint8_t len)
 static parser_t parser;
 
 // Helper function, feed a sequence of bytes to the parser and return the result of the last byte
-static uint8_t feed(const uint8_t *bytes, size_t count)
+static int16_t feed(const uint8_t *bytes, size_t count)
 {
-    uint8_t last = 0;
+    int16_t last = 0;
     for (size_t i = 0; i < count; i++) {
         last = parser_feed(&parser, bytes[i]);
     }
@@ -46,7 +46,7 @@ void tearDown(void)     /* is run after every test */
 // E1
 void test_valid_packet_is_delivered(void)
 {
-    const uint8_t bytes[] = {UART_HEADER_BYTE, 2, 10, 20, 10 ^ 20};
+    const uint8_t bytes[] = {UART_HEADER_BYTE, 2, 10, 20, 0x0A ^ 0x14};
     feed(bytes, sizeof bytes);
 
     TEST_ASSERT_EQUAL_INT(1, packet_count);
@@ -58,7 +58,7 @@ void test_valid_packet_is_delivered(void)
 // E2
 void test_bad_checksum_is_dropped(void)
 {
-    const uint8_t bytes[] = {UART_HEADER_BYTE, 2, 10, 20, (10 ^ 20) + 1};  /* bad checksum */
+    const uint8_t bytes[] = {UART_HEADER_BYTE, 2, 10, 20, (0x0A ^ 0x14) + 1};  /* bad checksum */
     feed(bytes, sizeof bytes);
 
     TEST_ASSERT_EQUAL_INT(0, packet_count);
@@ -97,7 +97,7 @@ void test_two_packets_in_a_row(void)
 {
     const uint8_t bytes[] = {
         UART_HEADER_BYTE, 1, 10, 10,
-        UART_HEADER_BYTE, 2, 20, 30, 20 ^ 30
+        UART_HEADER_BYTE, 2, 20, 30, 0x14 ^ 0x1E
     };
     feed(bytes, sizeof bytes);
 
@@ -110,7 +110,7 @@ void test_two_packets_in_a_row(void)
 void test_recovers_after_bad_checksum(void)
 {
     const uint8_t bytes[] = {
-        UART_HEADER_BYTE, 2, 10, 20, (10 ^ 20) + 1,   /* bad checksum */
+        UART_HEADER_BYTE, 2, 10, 20, (0x0A ^ 0x14) + 1,   /* bad checksum */
         UART_HEADER_BYTE, 1, 42, 42
     };
     feed(bytes, sizeof bytes);
@@ -123,8 +123,8 @@ void test_recovers_after_bad_checksum(void)
 void test_checksum_is_reset_between_packets(void)
 {
     const uint8_t bytes[] = {
-        UART_HEADER_BYTE, 2, 10, 20, 10 ^ 20,
-        UART_HEADER_BYTE, 2, 30, 40, 30 ^ 40
+        UART_HEADER_BYTE, 2, 10, 20, 0x0A ^ 0x14,
+        UART_HEADER_BYTE, 2, 30, 40, 0x1E ^ 0x28
     };
     feed(bytes, sizeof bytes);
 
@@ -217,7 +217,7 @@ void test_too_long_packet_is_dropped(void)
 // With E1 and E2, checksum is tested both just below, just above and exactly at the correct value
 void test_checksum_one_below_is_dropped(void)
 {
-    const uint8_t bytes[] = {UART_HEADER_BYTE, 2, 10, 20, (10 ^ 20) - 1};  /* bad checksum */
+    const uint8_t bytes[] = {UART_HEADER_BYTE, 2, 10, 20, (0x0A ^ 0x14) - 1};  /* bad checksum */
     feed(bytes, sizeof bytes);
 
     TEST_ASSERT_EQUAL_INT(0, packet_count);
@@ -227,26 +227,26 @@ void test_checksum_one_below_is_dropped(void)
 // Return value tests
 void test_returns_message_id_after_valid_packet(void)
 {
-    const uint8_t bytes[] = {UART_HEADER_BYTE, 2, 10, 20, 10 ^ 20};
-    uint8_t last = feed(bytes, sizeof bytes);
+    const uint8_t bytes[] = {UART_HEADER_BYTE, 2, 10, 20, 0x0A ^ 0x14};
+    int16_t last = feed(bytes, sizeof bytes);
 
-    TEST_ASSERT_EQUAL_UINT8(10, last);
+    TEST_ASSERT_EQUAL_INT16(10, last);
 }
 
-void test_returns_zero_in_the_middle_of_a_packet(void)
+void test_returns_negative_one_in_the_middle_of_a_packet(void)
 {
     const uint8_t bytes[] = {UART_HEADER_BYTE, 2, 10};
-    uint8_t last = feed(bytes, sizeof bytes);
+    int16_t last = feed(bytes, sizeof bytes);
 
-    TEST_ASSERT_EQUAL_UINT8(0, last);
+    TEST_ASSERT_EQUAL_INT16(-1, last);
 }
 
-void test_returns_zero_after_bad_checksum(void)
+void test_returns_negative_one_after_bad_checksum(void)
 {
-    const uint8_t bytes[] = {UART_HEADER_BYTE, 2, 10, 20, (10 ^ 20) + 1};  /* bad checksum */
-    uint8_t last = feed(bytes, sizeof bytes);
+    const uint8_t bytes[] = {UART_HEADER_BYTE, 2, 10, 20, (0x0A ^ 0x14) + 1};  /* bad checksum */
+    int16_t last = feed(bytes, sizeof bytes);
 
-    TEST_ASSERT_EQUAL_UINT8(0, last);
+    TEST_ASSERT_EQUAL_INT16(-1, last);
 }
 
 int main(void)
@@ -269,7 +269,7 @@ int main(void)
     RUN_TEST(test_checksum_one_below_is_dropped);
 
     RUN_TEST(test_returns_message_id_after_valid_packet);
-    RUN_TEST(test_returns_zero_in_the_middle_of_a_packet);
-    RUN_TEST(test_returns_zero_after_bad_checksum);
+    RUN_TEST(test_returns_negative_one_in_the_middle_of_a_packet);
+    RUN_TEST(test_returns_negative_one_after_bad_checksum);
     return UNITY_END();
 }
