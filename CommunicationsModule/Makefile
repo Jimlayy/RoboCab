@@ -7,7 +7,7 @@ LDLIBS   += -pthread
 BUILD  := build
 TARGET := $(BUILD)/communications_module
 
-COMMON := ../Common/logic
+COMMON := ../Common/Logic
 
 SRCS := $(wildcard src/*.c) $(wildcard $(COMMON)/*.c)
 OBJS := $(patsubst %.c,$(BUILD)/%.o,$(notdir $(SRCS)))

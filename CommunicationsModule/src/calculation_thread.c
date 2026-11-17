@@ -16,10 +16,10 @@
  */
 #include <stddef.h>
 #include <time.h>
-#include <stdint.h>
 #include "command.h"
 #include "sensor_data.h"
 #include "packet_handler.h"
+#include <signal.h>
 //#include "graph.h"
 
 #define PERIOD_MS     50     // 20 decisions per second
@@ -93,24 +93,4 @@ void *calculation_thread(void *arg)
 
     send_steering(a->steering_fd, 0, 0);    // leave the car standing still
     return NULL;
-}
-
-void *calculation_thread(void *arg)
-{
-    (void)arg;
-    return NULL;
-}
-
-
-void read_data(void *arg)
-{
-    get_sensor_data(&sd);
-    // TODO; Add data from external pc (route)
-    (void)arg;
-}
-
-void shortest_route(void *arg)
-{
-    //Calculate shortest route to 
-    (void)arg;
 }
