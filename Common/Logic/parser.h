@@ -5,6 +5,8 @@
 #include <stdbool.h>
 #include "uart_definitions.h"
 
+#define SUCCESSFUL_BYTE -2
+
 typedef enum {
     PENDING_HEADER,
     PENDING_LENGTH,

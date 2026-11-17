@@ -30,7 +30,7 @@ static PID_DATA pid_data = {0};
 static PID_PARAMS pid_params = {0};
 
 void init_motor(){
-	DDRB |= (1 << PB3) | (1 << PB2) | (1 << PB1);	// Set PB3 (OC0A) as output for PWM, PB2 for direction and PB1 for brake
+	DDRB |= (1 << PB3) | (1 << PB2) | (1 << PB1);	// Set PB3 (OC0A) as output for PWM, PB2 for brake and PB1 for direction
 	TCCR0A |= (1 << COM0A1) | (1 << WGM00);	// clear OC0A on up, set on down
 	TCCR0B |= (1 << CS01);	// prescaler 8  (will generate ~4kHz signal)
 	OCR0A = 0;
@@ -102,7 +102,7 @@ void run_new_pid(){
 void set_motor_servo_params(){
 	if (motor_servo_data.new_data_is_ready){
 		motor_servo_data.new_data_is_ready = 0;
-		PORTB = (PORTB & ~((1 << PB2) | (1 << PB1))) | (motor_servo_data.motor_dir << PB2) | (motor_servo_data.motor_brake << PB1);	// store direction in PORTB[2] and brake in PORTB[1]
+		PORTB = (PORTB & ~((1 << PB2) | (1 << PB1))) | (motor_servo_data.motor_brake << PB2) | (motor_servo_data.motor_dir << PB1);	// store direction in PORTB[1] and brake in PORTB[2]
 		OCR0A = motor_servo_data.motor_speed;
 		OCR1A = motor_servo_data.servo_pulse_width;
 	}
