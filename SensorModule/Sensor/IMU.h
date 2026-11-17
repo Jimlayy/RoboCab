@@ -1,19 +1,3 @@
-<<<<<<< HEAD
-#include <avr/io.h>
-#include <stdio.h>
-#include <stdlib.h>
-
-typedef struct {
-    int16_t ax, ay, az;  // Accelerometer
-    int16_t gx, gy, gz;  // Gyroscope
-    int16_t mx, my, mz;  // Magnetometer
-} IMU_data;
-
-void init_IMU() {
-	DDRC &= ~((1<<PC0)|(1<<PC1));
-    PORTC |= (1<<PC0)|(1<<PC1);
-}
-=======
 // Adafruit NXP Precision 9DoF breakout (FXOS8700 accel/mag + FXAS21002 gyro)
 // EVA running at 16 MHz external clock
 // Hardware:
@@ -124,8 +108,10 @@ static uint8_t imu_read_regs(uint8_t addr, uint8_t reg, uint8_t *buf, uint8_t n)
 // ---------- Public API ----------
 
 // Returns 1 if both chips answered with the right WHO_AM_I, 0 otherwise.
-uint8_t init_imu() {
+uint8_t init_IMU() {
     uint8_t id;
+	// DDRC &= ~((1<<PC0)|(1<<PC1)) // PC0 and PC1 as input
+	// PORTC |= (1<<PC0)|(1<<PC1); // pull up resistors
 
     TWSR = 0;                                       // prescaler 1
     TWBR = (uint8_t)((F_CPU/TWI_FREQ - 16) / 2);    // 72 -> 100 kHz
@@ -150,7 +136,7 @@ uint8_t init_imu() {
     return 1;
 }
 
-imu_sample_t sample_imu() {
+imu_sample_t sample_IMU() {
     imu_sample_t s = {0};
     uint8_t b[13];
 
@@ -176,9 +162,8 @@ imu_sample_t sample_imu() {
 }
 
 // Integer unit conversions (avoids needing float printf on AVR)
-static inline int32_t imu_accel_mg(int16_t raw)  { return ((int32_t)raw * 244) / 1000; }    // +-2 g
-static inline int32_t imu_gyro_mdps(int16_t raw) { return ((int32_t)raw * 78125) / 10000; } // +-250 dps
+static inline int16_t imu_accel_mg(int16_t raw)  { return (int16_t)(((int32_t)raw * 244) / 1000); }    // +-2 g
+static inline int16_t imu_gyro_mdps(int16_t raw) { return (int16_t)(((int32_t)raw * 78125) / 10000); } // +-250 dps
 // Mag: raw value is already in units of 0.1 uT
 
 #endif
->>>>>>> 4044afbd81c45b203d2414e6b7ddac549b0e64e7
