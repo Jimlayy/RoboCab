@@ -45,7 +45,7 @@ void init_servo(){
 	TCCR1A |= (1 << COM1A1) | (1 << WGM11);
 	TCCR1B |= (1 << WGM13) | (1 << WGM12) | (1 << CS11); 	 
 	ICR1 = SERVO_TOP_50HZ;	// TOP-value (will generate 50 Hz signal)
-	motor_servo_data.servo_pulse_width = 140;
+	motor_servo_data.servo_pulse_width = SERVO_START_PULSE_WIDTH;
 	OCR1A = motor_servo_data.servo_pulse_width;
 }
 
@@ -102,7 +102,7 @@ void run_new_pid(){
 void set_motor_servo_params(){
 	if (motor_servo_data.new_data_is_ready){
 		motor_servo_data.new_data_is_ready = 0;
-		PORTB = (PORTB & ~((1 << PB2) | (1 << PB1))) | (motor_servo_data.motor_brake << PB2) | (motor_servo_data.motor_dir << PB1);	// store direction in PORTB[1] and brake in PORTB[2]
+		PORTB = (PORTB & ~((1 << PB2) | (1 << PB1))) | (motor_servo_data.motor_brake << PB2) | (!motor_servo_data.motor_dir << PB1);	// store direction in PORTB[1] and brake in PORTB[2]
 		OCR0A = motor_servo_data.motor_speed;
 		OCR1A = motor_servo_data.servo_pulse_width;
 	}
