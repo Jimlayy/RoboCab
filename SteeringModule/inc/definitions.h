@@ -2,8 +2,14 @@
 
 #include "uart_definitions.h"
 #include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <avr/io.h>
 
 //UART
+void init_custom_stdout();
+int uart_putchar(char c, FILE *stream);
+
 #define MYUBBR ((F_CPU / 16 + BAUD_RATE / 2) / BAUD_RATE - 1)
 #define MESSAGE_ID_IDX 0
 

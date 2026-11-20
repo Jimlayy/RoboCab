@@ -22,8 +22,10 @@ typedef struct {
 
 typedef enum {
     DT_IDX = 1,
-    ERROR_H_IDX,
-    ERROR_L_IDX,
+    SENSOR_IN_H_IDX,
+    SENSOR_IN_L_IDX,
+    WANTED_SENSOR_IN_H_IDX,
+    WANTED_SENSOR_IN_L_IDX,
     SENSOR_MODE_IDX
 } PID_DATA_PAYLOAD_IDX;
 
@@ -40,7 +42,8 @@ typedef enum {
 typedef struct {
     uint8_t dt; // time since last pd-calculation in milliseconds
     uint8_t sensor_mode;
-    int16_t error;
+    int16_t sensor_in;
+    int16_t wanted_in;
     int16_t prev_error;
     bool new_data_is_ready;
 } PID_DATA;

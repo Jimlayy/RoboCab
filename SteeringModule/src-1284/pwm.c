@@ -32,7 +32,7 @@ static PID_PARAMS pid_params = {0};
 void init_motor(){
 	DDRB |= (1 << PB3) | (1 << PB2) | (1 << PB1);	// Set PB3 (OC0A) as output for PWM, PB2 for brake and PB1 for direction
 	TCCR0A |= (1 << COM0A1) | (1 << WGM00);	// clear OC0A on up, set on down
-	TCCR0B |= (1 << CS01);	// prescaler 8  (will generate ~4kHz signal)
+	TCCR0B |= (1 << CS01) | (1 << CS00);	// prescaler 64  (will generate ~490 Hz signal)    MAX 2KHz
 	OCR0A = 0;
 }
 
@@ -80,20 +80,22 @@ void assign_pid_output(int32_t pid_output, uint8_t sensor_mode){
 void run_new_pid(){
     if (pid_data.new_data_is_ready) {
         pid_data.new_data_is_ready = 0;
+        
+        int16_t error = pid_data.sensor_in - pid_data.wanted_in;
+        int16_t delta_error = error - pid_data.prev_error;
+        pid_data.prev_error = error;
 
-        int16_t delta_error = pid_data.error - pid_data.prev_error;
-        pid_data.prev_error = pid_data.error;
-
-        int32_t proportional = (int32_t)pid_params.k_p * pid_data.error;
+        int32_t proportional = (int32_t)pid_params.k_p * error;
 
         if (pid_data.dt > 100){
             pid_data.dt = 100;  // cap maximum dt (shouldn't take this long between readings) just in case
         }
 
         uint16_t reciprocal_dt = pgm_read_word(&dt_reciprocal_LUT[pid_data.dt]);    // fetch reciprocal version of dt to avoid division
-        int32_t raw_derivative = (int32_t)delta_error * reciprocal_dt * pid_params.k_d;
-        int32_t derivative = (raw_derivative + (1 << 15)) >> 16; 
+        int32_t raw_derivative = (int32_t)delta_error * reciprocal_dt * pid_params.k_d; // calculate raw derivative term with the reciprocal 
+        int32_t derivative = (raw_derivative + (1 << 15)) >> 16;    // add 2^15 for better integer rounding and shift 16 bits right (16 bit reciprocal)
         int32_t output = proportional + derivative;
+        printf("Sensor mode: %u --- PD-output: %li\n", pid_data.sensor_mode, output);
 
         assign_pid_output(output, pid_data.sensor_mode);
     }
@@ -109,6 +111,7 @@ void set_motor_servo_params(){
 }
 
 void dispatch_data(const uint8_t *payload, uint8_t payload_length){
+    printf("--- NEW DATA --- (message id: %u)\n", payload[MESSAGE_ID_IDX]);
     switch (payload[MESSAGE_ID_IDX])
     {   
     case MOTOR_SERVO_MSG_ID:  // motor and servo 
@@ -124,11 +127,17 @@ void dispatch_data(const uint8_t *payload, uint8_t payload_length){
             motor_servo_data.servo_pulse_width = (payload[SERVO_PULSE_WIDTH_HB_IDX] << 8) | payload[SERVO_PULSE_WIDTH_LB_IDX];
         }
 
+        printf("Motor Direction: %u\n", motor_servo_data.motor_dir);
+        printf("Motor Brake: %u\n", motor_servo_data.motor_brake);
+        printf("Motor Speed: %u\n", motor_servo_data.motor_speed);
+        printf("Servo PW: %u\n\n", motor_servo_data.servo_pulse_width);
+
         motor_servo_data.new_data_is_ready = 1;
         break;
     case PID_DATA_MSG_ID:
         pid_data.dt = payload[DT_IDX];
-        pid_data.error = (payload[ERROR_H_IDX] << 8) | (payload[ERROR_L_IDX]);
+        pid_data.sensor_in = (payload[SENSOR_IN_H_IDX] << 8) | (payload[SENSOR_IN_L_IDX]);
+        pid_data.wanted_in = (payload[WANTED_SENSOR_IN_H_IDX] << 8) | (payload[WANTED_SENSOR_IN_L_IDX]);
         pid_data.sensor_mode = payload[SENSOR_MODE_IDX];
         pid_data.new_data_is_ready = 1;
     break;
