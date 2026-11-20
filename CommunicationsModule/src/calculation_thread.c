@@ -16,7 +16,7 @@
  */
 #include <stddef.h>
 #include <time.h>
-#include <stfint.h>
+#include <stdint.h>
 #include "command.h"
 #include "sensor_data.h"
 #include "packet_handler.h"
