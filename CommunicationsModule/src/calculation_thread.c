@@ -40,14 +40,14 @@ typedef struct {
 } calc_args_t;
 
 /* Translate a manual command into speed and steering angle */
-static void manual_directive(drive_cmd_t d, int16_t *speed, int16_t *angle)
+static void manual_directive(drive_cmd_t d, bool* motor_dir, bool* motor_brake, int16_t *speed, int16_t *angle)
 {
     switch (d) {
-    case DRIVE_FORWARD: *speed =  MANUAL_SPEED; *angle = 0;             break;
-    case DRIVE_BACK:    *speed = -MANUAL_SPEED; *angle = 0;             break;
-    case DRIVE_LEFT:    *speed =  MANUAL_SPEED; *angle = -MANUAL_ANGLE; break;
-    case DRIVE_RIGHT:   *speed =  MANUAL_SPEED; *angle =  MANUAL_ANGLE; break;
-    default:            *speed = 0;             *angle = 0;             break;  // STOP
+    case DRIVE_FORWARD: *speed =  MANUAL_SPEED; *angle = 0; *motor_dir = 1; *motor_brake = 0;            break;
+    case DRIVE_BACK:    *speed = -MANUAL_SPEED; *angle = 0; *motor_dir = 0; *motor_brake = 0             break;
+    case DRIVE_LEFT:    *speed =  MANUAL_SPEED; *angle = -MANUAL_ANGLE; *motor_dir = 1; *motor_brake = 0 break;
+    case DRIVE_RIGHT:   *speed =  MANUAL_SPEED; *angle =  MANUAL_ANGLE; *motor_dir = 1; *motor_brake = 0 break;
+    default:            *speed = 0;             *angle = 0;     *motor_dir = 1;     *motor_brake = 1     break;  // STOP
     }
 }
 
@@ -80,7 +80,7 @@ void *calculation_thread(void *ctx)
         sensor_data_get(&sd);
 
         if (!cmd.auto_mode) {
-            manual_directive(cmd.drive, &speed, &angle);
+            manual_directive(cmd.drive, &direction, &brake, &speed, &angle);
         } else {
             if (cmd.new_mission) {
                 // look up cmd.start / cmd.goal in the map, run shortest_path_no_uturn,
