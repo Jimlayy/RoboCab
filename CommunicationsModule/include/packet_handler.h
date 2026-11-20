@@ -2,6 +2,7 @@
 #define PACKET_HANDLER_H
 
 #include <stdint.h>
+#include <stdbool.h>
 
 /* --- Receiving --- */
 

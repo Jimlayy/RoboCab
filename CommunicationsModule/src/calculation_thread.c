@@ -20,6 +20,7 @@
 #include "command.h"
 #include "sensor_data.h"
 #include "packet_handler.h"
+#include "calculation_thread.h"
 #include <signal.h>
 #include <stdbool.h>
 //#include "graph.h"
@@ -87,6 +88,6 @@ void *calculation_thread(void *ctx)
         wait_next_period(&next);
     }
 
-    send_steering(a->steering_fd, 0, 0);    // leave the car standing still
+    //send_steering(a->steering_fd, 0, 0);    // leave the car standing still
     return NULL;
 }
