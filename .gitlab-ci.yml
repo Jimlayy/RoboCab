@@ -17,3 +17,9 @@ camera-tests:
   script:
     - apt-get install -y -qq python3-opencv python3-pytest
     - make camera-test
+
+c-tests:
+  stage: test
+  script:
+    - apt-get install -y -qq gcc libc6-dev
+    - make c-test
