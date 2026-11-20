@@ -37,6 +37,8 @@ static void save_command(const char *cmd)
     printf("Saving command\n");
     char start[32], goal[32];
 
+    printf("[cmd] received: '%s'\n", cmd);
+
     pthread_mutex_lock(&lock);
     if      (strcmp(cmd, "FORWARD")  == 0) latest.drive = DRIVE_FORWARD;
     else if (strcmp(cmd, "BACK")     == 0) latest.drive = DRIVE_BACK;
@@ -50,6 +52,7 @@ static void save_command(const char *cmd)
         strcpy(latest.goal, goal);
         latest.new_mission = 1;
     }
+    printf("'%s'\n", cmd);
     else fprintf(stderr, "Unknown command: '%s'\n", cmd);
     pthread_mutex_unlock(&lock);
 }
