@@ -37,12 +37,12 @@ TEST_CFLAGS := -std=c11 -Wall -Wextra -I$(UNITY)
 # Runs every test program given as a prerequisite, even if one fails.
 RUN_TESTS = @status=0; for t in $^; do ./$$t || status=1; done; exit $$status
 
-# ---- Common: tests in Common/tests, code in Common/Logic ----
+# ---- Common: tests in Common/tests, code in Common/logic ----
 COMMON_TESTS := $(patsubst Common/tests/%.c,build/common/%,$(wildcard Common/tests/test_*.c))
 
-build/common/test_%: Common/tests/test_%.c Common/Logic/%.c $(UNITY)/unity.c
+build/common/test_%: Common/tests/test_%.c Common/logic/%.c $(UNITY)/unity.c
 	@mkdir -p $(@D)
-	$(CC) $(TEST_CFLAGS) -ICommon/Logic $^ -o $@
+	$(CC) $(TEST_CFLAGS) -ICommon/logic $^ -o $@
 
 common-test: $(COMMON_TESTS)
 	$(RUN_TESTS)
@@ -52,7 +52,7 @@ COMMS_TESTS := $(patsubst CommunicationsModule/tests/%.c,build/comms/%,$(wildcar
 
 build/comms/test_%: CommunicationsModule/tests/test_%.c CommunicationsModule/src/%.c $(UNITY)/unity.c
 	@mkdir -p $(@D)
-	$(CC) $(TEST_CFLAGS) -pthread -ICommunicationsModule/include -ICommon/Logic $^ -o $@
+	$(CC) $(TEST_CFLAGS) -pthread -ICommunicationsModule/include -ICommon/logic $^ -o $@
 
 comms-test: $(COMMS_TESTS)
 	$(RUN_TESTS)
@@ -63,7 +63,7 @@ STEERING_TESTS := $(patsubst SteeringModule/tests/%.c,build/steering/%,$(wildcar
 
 build/steering/test_%: SteeringModule/tests/test_%.c SteeringModule/logic/%.c $(UNITY)/unity.c
 	@mkdir -p $(@D)
-	$(CC) $(TEST_CFLAGS) -ISteeringModule/logic -ICommon/Logic $^ -o $@
+	$(CC) $(TEST_CFLAGS) -ISteeringModule/logic -ICommon/logic $^ -o $@
 
 steering-test: $(STEERING_TESTS)
 	$(RUN_TESTS)
@@ -74,7 +74,7 @@ SENSOR_TESTS := $(patsubst SensorModule/tests/%.c,build/sensor/%,$(wildcard Sens
 
 build/sensor/test_%: SensorModule/tests/test_%.c SensorModule/logic/%.c $(UNITY)/unity.c
 	@mkdir -p $(@D)
-	$(CC) $(TEST_CFLAGS) -ISensorModule/logic -ICommon/Logic $^ -o $@
+	$(CC) $(TEST_CFLAGS) -ISensorModule/logic -ICommon/logic $^ -o $@
 
 sensor-test: $(SENSOR_TESTS)
 	$(RUN_TESTS)
