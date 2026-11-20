@@ -17,3 +17,10 @@ camera-tests:
   script:
     - apt-get install -y -qq python3-opencv python3-pytest
     - make camera-test
+
+common-tests:
+  stage: test
+  script:
+    - apt-get install -y -qq gcc
+    - apt-get install -y -qq libc6-dev
+    - make common-test

@@ -13,7 +13,7 @@ LOGIC_HDRS := $(wildcard */logic/*.h)
 AVR_SRCS := $(wildcard Common/logic/*.c SteeringModule/logic/*.c SensorModule/logic/*.c)
 AVR_OBJS := $(patsubst %.c,build/avr/%.o,$(AVR_SRCS))
 
-.PHONY: avr camera-test clean
+.PHONY: avr camera-test common-test clean
 
 avr: $(AVR_OBJS)
 
@@ -23,6 +23,10 @@ build/avr/%.o: %.c $(LOGIC_HDRS)
 
 camera-test:
 	cd CameraModule && python3 -m pytest tests -v
+
+common-test:
+	mkdir -p build
+	gcc -std=c11 -Wall -Wextra -IVendor/unity -ICommon/Logic Common/tests/test_parser.c Common/Logic/parser.c Vendor/unity/unity.c -o build/test_parser && ./build/test_parser
 
 clean:
 	rm -rf build
