@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <time.h>
+#include <stdbool.h>>
 #include "packet_handler.h"
 #include "protocol.h"
 #include "port.h"
@@ -65,12 +66,30 @@ int send_packet(int fd, const uint8_t *data, uint8_t len)
     return write_all(fd, frame, (size_t)len + 3);
 }
 
-// Speed and steering angle to the steering module
-int send_steering(int fd, int16_t speed, int16_t angle)
+// send manual mode steering parameters. Angle is between 1000 and 2000
+int send_manual_steering(int fd, bool motor_dir, bool motor_brake, uint8_t speed, uint16_t angle)
 {
-    uint8_t data[PKT_STEERING_LEN];
-    data[0] = PKT_STEERING;
-    put_u16(&data[1], (uint16_t)speed);
-    put_u16(&data[3], (uint16_t)angle);
+    uint8_t data[PKT_MAN_STEERING_LEN];
+    data[0] = PKT_MAN_STEERING;
+    data[1] = motor_dir;
+    data[2] = motor_brake;
+    data[3] = speed;
+    put_u16(&data[4], angle);
     return send_packet(fd, data, sizeof data);
+}
+
+// send autonomos mode steering parameters.
+int send_autonomous_steering(int fd, uint8_t delta_t, uint8_t sensor_mode, uint16_t error)
+{
+    uint8_t data[PKT_AUT_STEERING_LEN];
+    data[0] = PKT_AUT_STEERING;
+    data[1] = delta_t;
+    data[2] = sensor_mode;
+    put_u16(&data[3], error);
+    return send_packet(fd, data, sizeof data);
+}
+
+int send_PID_params_steering(int fd)
+{
+    //TODO
 }
