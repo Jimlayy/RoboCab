@@ -53,7 +53,6 @@ static void save_command(const char *cmd)
         latest.new_mission = 1;
     }
     printf("'%s'\n", cmd);
-    else fprintf(stderr, "Unknown command: '%s'\n", cmd);
     pthread_mutex_unlock(&lock);
 }
 
