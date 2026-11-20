@@ -88,9 +88,9 @@ int send_manual_steering(int fd, bool motor_dir, bool motor_brake, uint8_t speed
     for (size_t i = 0; i < sizeof data; i++)
         printf(" %02X", data[i]);
     printf("\n");
-
+     */
     return send_packet(fd, data, sizeof data);
-    */
+   
 }
 
 // send autonomos mode steering parameters.
