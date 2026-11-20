@@ -16,15 +16,15 @@
 #include "port.h"
 #include "uart_definitions.h"
 #include "command.h"
+#include "calculation_thread.h"
 
 #define SENSOR_DEVICE   "/dev/ttyUSB0"
 #define STEERING_DEVICE "/dev/ttyUSB1"
 
-/* Defined in calculation_thread.c. Move this to a header once one exists. */
-void *calculation_thread(void *arg);
 
 /* Set to 0 to make every loop in the program stop. */
 static volatile sig_atomic_t running = 1;
+static calc_args_t ctx = { .running = &running };
 
 static void on_signal(int sig)
 {
@@ -44,7 +44,7 @@ static void *port_thread(void *arg)
     return NULL;
 }
 
-/*int main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
     const char *sensor_device   = (argc > 1) ? argv[1] : SENSOR_DEVICE;
     const char *steering_device = (argc > 2) ? argv[2] : STEERING_DEVICE;
@@ -65,6 +65,7 @@ static void *port_thread(void *arg)
         return 1;
     }
 
+    ctx.steering_fd = steering_fd;
 
 
     printf("Sensor: %s, steering: %s. Press Ctrl+C to stop.\n",
@@ -73,23 +74,23 @@ static void *port_thread(void *arg)
     pthread_t sensor_tid, steering_tid, calc_tid, command_tid;
     pthread_create(&sensor_tid, NULL, port_thread, &sensor_fd);
     pthread_create(&steering_tid, NULL, port_thread, &steering_fd);
-    //pthread_create(&calc_tid, NULL, calculation_thread, (void *)&running);
+    pthread_create(&calc_tid, NULL, calculation_thread, (void *)&ctx);
     pthread_create(&command_tid, NULL, command_thread,(void*) &running);
     
 
     pthread_join(sensor_tid, NULL);
     pthread_join(steering_tid, NULL);
-    //pthread_join(calc_tid, NULL);
+    pthread_join(calc_tid, NULL);
     pthread_join(command_tid, NULL);
 
     close(sensor_fd);
     close(steering_fd);
     printf("Stopped.\n");
     return 0;
-}*/
+}
 
 
-int main(int argc, char *argv[]){
+/*int main(int argc, char *argv[]){
 
 
     const char *sensor_device   = (argc > 1) ? argv[1] : SENSOR_DEVICE;
@@ -111,4 +112,4 @@ int main(int argc, char *argv[]){
     return 0;
 
     return 0;
-}
+}*/
