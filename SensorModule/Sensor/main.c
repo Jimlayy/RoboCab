@@ -3,9 +3,10 @@
 #include "IMU.h"
 
 #define F_CPU 16000000UL
-#define BAUD 115200
+#define BAUD 9600
 #define WHEEL_CIRCUMFERENCE_MM 120      // not measured yet (D-23): prints pulses only
 #define STOP_TIMEOUT_MS 1000          // provisional (D-25)
+#define DEBUG false					// Readable data in tera term
 
 // custom output function
 int uart_putchar(char c, FILE *stream) {   // print char to stream (UART)
@@ -15,9 +16,76 @@ int uart_putchar(char c, FILE *stream) {   // print char to stream (UART)
 	return 0;
 }
 
-
 // define the stream
 static FILE mystdout = FDEV_SETUP_STREAM(uart_putchar, NULL, _FDEV_SETUP_WRITE);
+
+#define PACKET_HEADER       0xAA
+#define PAYLOAD_LENGTH      23
+#define PACKET_LENGTH       26
+
+// Add a 32-bit value to the payload, least significant byte first.
+void append_u32(uint8_t *payload, uint8_t *index, uint32_t value)
+{
+	payload[(*index)++] = (uint8_t)(value);
+	payload[(*index)++] = (uint8_t)(value >> 8);
+	payload[(*index)++] = (uint8_t)(value >> 16);
+	payload[(*index)++] = (uint8_t)(value >> 24);
+}
+
+// Add a 16-bit value to the payload, least significant byte first.
+void append_u16(uint8_t *payload, uint8_t *index, int16_t value)
+{
+	uint16_t data = (uint16_t)value;
+
+	payload[(*index)++] = (uint8_t)(data);
+	payload[(*index)++] = (uint8_t)(data >> 8);
+}
+
+// Construct and transmit the complete packet.
+void send_packet(odometry_sample_t odo, uint16_t dist, imu_sample_t imu)
+{
+	uint8_t packet[PACKET_LENGTH];
+	uint8_t index = 0;
+	uint8_t checksum = 0;
+
+	int16_t accel_x = (int16_t)imu_accel_mg(imu.ax);
+	int16_t gyro_z  = (int16_t)imu_gyro_mdps(imu.gz);
+
+	// Header and payload length
+	packet[index++] = PACKET_HEADER;
+	packet[index++] = PAYLOAD_LENGTH;
+
+	// distance
+	append_u16(packet, &index, (int16_t)dist);
+
+	// odometry
+	append_u32(packet, &index, odo.left_pulses);
+	append_u32(packet, &index, odo.right_pulses);
+	append_u32(packet, &index, odo.left_tslp);
+	append_u32(packet, &index, odo.right_tslp);
+
+	// IMU
+	append_u16(packet, &index, accel_x);
+	append_u16(packet, &index, gyro_z);
+
+	// IMU ok
+	packet[index++] = (uint8_t)imu.ok;
+
+	// checksum
+	for (uint8_t i = 2; i < index; i++)
+	{
+		checksum ^= packet[i];
+	}
+
+	// Append checksum
+	packet[index++] = checksum;
+
+	// send data
+	for (uint8_t i = 0; i < index; i++)
+	{
+		printf("%c", (int)packet[i]);
+	}
+}
 
 void init_UART() {
     UBRR0H = (unsigned char) (((F_CPU/16.0/BAUD)-1+0.5)/256);
@@ -30,7 +98,6 @@ int main(void) {
     odometry_sample_t odo;
 	uint16_t dist;
 	imu_sample_t imu;
-    uint32_t last_print = 0;
 	
 	char val_adc[10];
 
@@ -40,39 +107,40 @@ int main(void) {
     init_odometry(); // For odometry: Pin 9 on IDC to PD2 and Pin 10 on IDC to PD3
 	init_ADC(); // PA2
 	init_IMU();
+	
     sei();
 
-	int counter = 0;
     while(1) {
         dist = sample_ADC();
 		odo = sample_odometry();
 		imu = sample_IMU();
 		
-		itoa(dist, val_adc, 10);
-		
-		if(counter == 50) {
-		printf("Right Time since last pulse: %lu\n", (unsigned long)odo.right_tslp);
-		printf("Left Time since last pulse: %lu\n", (unsigned long)odo.left_tslp);
-		printf("%d\n", imu_accel_mg(imu.ax)); // 2 bytes
-		printf("%d\n", imu_gyro_mdps(imu.gz)); // 2 bytes
-		printf("Right pulses: %lu\n", (unsigned long)odo.right_pulses);
-		printf("Left pulses: %lu\n", (unsigned long)odo.left_pulses);
-		printf("%s\n", val_adc);
+		if(DEBUG) {
+			itoa(dist, val_adc, 10);
+			printf("Distance: %s\n", val_adc);	
+			printf("Right Time since last pulse: %lu\n", (unsigned long)odo.right_tslp);
+			printf("Left Time since last pulse: %lu\n", (unsigned long)odo.left_tslp);
+			printf("Acceleration %d\n", imu_accel_mg(imu.ax)); // 2 bytes
+			printf("Gyro: %d\n", imu_gyro_mdps(imu.gz)); // 2 bytes
+			printf("Right pulses: %lu\n", (unsigned long)odo.right_pulses);
+			printf("Left pulses: %lu\n", (unsigned long)odo.left_pulses);
 		}
-		//int header = 0xAA
-		//int length = 
-		
+		else {
+			send_packet(odo, dist, imu);
+		}
+	
+	
 		/*	What we need to send:
-		*	Left and right pulses (4 bytes each)
-		*	Left and right tslp (4 bytes each)
+		*	HEADER (2bytes)
+		*	Left and right pulses (4 bytes each, unsigned)
+		*	Left and right tslp (4 bytes each, unsigned)
 		*	Acceleration in x axis (2 bytes)
 		*	Rotation in z axis (2 bytes)
 		*	Distance (2 bytes)
-		*
+		*	IMU.ok (1 byte)
+		*/
 		
-		counter++;
-		if(counter > 50) {counter = 0;}
-    }
+	}
 }
 
 //TODO: Implement IMU_ok bool at the end of the payload
