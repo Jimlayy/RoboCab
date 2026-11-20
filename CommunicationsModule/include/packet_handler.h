@@ -17,6 +17,8 @@ int send_packet(int fd, const uint8_t *data, uint8_t len);
 
 /* Send speed and steering angle to the steering module.
  * Returns 0 on success, -1 on error. */
-int send_steering(int fd, int16_t speed, int16_t angle);
+int send_manual_steering(int fd, bool motor_dir, bool motor_brake, uint8_t speed, uint16_t angle);
+
+int send_autonomous_steering(int fd, uint8_t delta_t, uint8_t sensor_mode, uint16_t error);
 
 #endif

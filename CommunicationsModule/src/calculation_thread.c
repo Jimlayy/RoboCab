@@ -28,18 +28,6 @@
 #define MANUAL_SPEED  300    // speed when driving by hand (your units)
 #define MANUAL_ANGLE  30     // steering angle for LEFT/RIGHT
 
-typedef struct {
-    int from_node;        // last node passed (confirmed by the camera)
-    int to_node;          // next node on the route
-    float dist_on_edge;   // distance driven since from_node (odometry), in cm
-    int route_index;      // where in the planned route list we are
-} car_state_t;
-
-typedef struct {
-    int steering_fd;
-    volatile sig_atomic_t *running;
-} calc_args_t;
-
 /* Translate a manual command into speed and steering angle */
 static void manual_directive(drive_cmd_t d, bool* motor_dir, bool* motor_brake, int16_t *speed, int16_t *angle)
 {
@@ -47,7 +35,7 @@ static void manual_directive(drive_cmd_t d, bool* motor_dir, bool* motor_brake, 
     case DRIVE_FORWARD: *speed =  MANUAL_SPEED; *angle = 1500; *motor_dir = 1; *motor_brake = 0;            break;
     case DRIVE_BACK:    *speed =  MANUAL_SPEED; *angle = 1500; *motor_dir = 0; *motor_brake = 0;             break;
     case DRIVE_LEFT:    *speed =  MANUAL_SPEED; *angle = 1500 - MANUAL_ANGLE; *motor_dir = 1; *motor_brake = 0; break;
-    case DRIVE_RIGHT:   *speed =  MANUAL_SPEED; *angle = 1500 + MANUAL_ANGLE; *motor_dir = 1; *motor_brake = 0: break;
+    case DRIVE_RIGHT:   *speed =  MANUAL_SPEED; *angle = 1500 + MANUAL_ANGLE; *motor_dir = 1; *motor_brake = 0; break;
     default:            *speed = 0;             *angle = 1500;     *motor_dir = 1;     *motor_brake = 1;     break;  // STOP
     }
 }
@@ -64,7 +52,7 @@ static void wait_next_period(struct timespec *next)
 void *calculation_thread(void *ctx)
 {
     //context need from main
-    calc_args_t *a = ctx;
+    calc_args_t *a = ctx; 
     //data acquired from sensors
     command_data_t cmd;
     sensor_data_t  sd;
@@ -78,11 +66,11 @@ void *calculation_thread(void *ctx)
 
     while (*a->running) {
         command_data_get(&cmd);
-        sensor_data_get(&sd);
+        get_sensor_data(&sd);
 
         if (!cmd.auto_mode) {
             manual_directive(cmd.drive, &direction, &brake, &speed, &angle);
-            send_manual_steering(*a.steering_fd, direction, brake, speed, angle);
+            send_manual_steering(a->steering_fd, direction, brake, speed, angle);
         } else {
             if (cmd.new_mission) {
                 // look up cmd.start / cmd.goal in the map, run shortest_path_no_uturn,
