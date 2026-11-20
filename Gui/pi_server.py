@@ -1,30 +1,30 @@
 """
-pi_server.py  –  körs på Raspberry Pi:n
+pi_server.py  –  runs on the Raspberry Pi
 
-En enkel TCP-server. Den väntar på att bryggan ansluter, läser kommandon
-(en rad text per kommando, avslutad med '\n') och skickar tillbaka ett svar
-(också en rad text).
+A simple TCP server. It waits for the bridge to connect, reads commands
+(one line of text per command, terminated by '\n') and sends back a reply
+(also one line of text).
 
-Starta:  python3 pi_server.py
+Start:  python3 pi_server.py
 """
 
 import socket
 import time
 
-HOST = "0.0.0.0"   # lyssna på alla nätverkskort (så att andra datorer når oss)
-PORT = 5000        # porten bryggan ska ansluta till
+HOST = "0.0.0.0"   # listen on all network interfaces (so other computers can reach us)
+PORT = 5000        # the port the bridge connects to
 
-led_on = False     # låtsas-tillstånd; byt mot riktig GPIO-kod om du vill
+led_on = False     # fake state; replace with real GPIO code if you want
 
-C_SOCK_PATH = "/tmp/robocab_cmd.sock"   # måste matcha SOCK_PATH i cmd_reader.c
+C_SOCK_PATH = "/tmp/robocab_cmd.sock"   # must match SOCK_PATH in cmd_reader.c
 
-# Datagram-socket: varje sendto() blir exakt ett meddelande hos C-tråden,
-# så vi behöver ingen radbrytning eller buffring på C-sidan.
+# Datagram socket: each sendto() becomes exactly one message for the C thread,
+# so we need no line breaks or buffering on the C side.
 c_sock = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
 
 
 def send_to_c(cmd: str) -> bool:
-    """Skickar ett kommando till C-tråden. Returnerar False om den inte lyssnar."""
+    """Sends a command to the C thread. Returns False if it is not listening."""
     try:
         c_sock.sendto(cmd.encode("utf-8"), C_SOCK_PATH)
         return True
@@ -34,7 +34,7 @@ def send_to_c(cmd: str) -> bool:
 
 
 def handle_command(cmd: str) -> str:
-    """Tar emot ett kommando som text och returnerar svaret som text."""
+    """Takes a command as text and returns the reply as text."""
     cmd = cmd.strip().upper()
 
     match cmd.split():
@@ -69,23 +69,23 @@ def handle_command(cmd: str) -> str:
 
 
 def main():
-    # 1. Skapa en TCP-socket (AF_INET = IPv4, SOCK_STREAM = TCP)
+    # 1. Create a TCP socket (AF_INET = IPv4, SOCK_STREAM = TCP)
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    # Låter oss starta om servern direkt utan "Address already in use"
+    # Lets us restart the server right away without "Address already in use"
     server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    # 2. Knyt den till en adress + port och börja lyssna
+    # 2. Bind it to an address + port and start listening
     server.bind((HOST, PORT))
     server.listen()
     print(f"Pi-servern lyssnar på port {PORT} ...")
 
     while True:
-        # 3. Vänta tills någon (bryggan) ansluter
+        # 3. Wait until someone (the bridge) connects
         conn, addr = server.accept() # When a new connection is established, the connection and adress is saved.
         print("Ansluten:", addr)
 
-        # makefile gör att vi kan läsa rad för rad, som från en vanlig fil
+        # makefile lets us read line by line, like from a regular file
         with conn, conn.makefile("r", encoding="utf-8") as reader:
-            for line in reader:              # loopen slutar när bryggan kopplar ner
+            for line in reader:              # the loop ends when the bridge disconnects
                 print("Fick:", line.strip())
                 # put line.strip() on socket
                 answer = handle_command(line)
