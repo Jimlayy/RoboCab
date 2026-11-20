@@ -69,7 +69,7 @@ int send_packet(int fd, const uint8_t *data, uint8_t len)
 // send manual mode steering parameters. Angle is between 1000 and 2000
 int send_manual_steering(int fd, bool motor_dir, bool motor_brake, uint8_t speed, uint16_t angle)
 {
-    print("start send manual steering")
+    printf("start send manual steering");
     uint8_t data[PKT_MAN_STEERING_LEN];
     data[0] = PKT_MAN_STEERING;
     data[1] = motor_dir;
@@ -81,7 +81,7 @@ int send_manual_steering(int fd, bool motor_dir, bool motor_brake, uint8_t speed
     for (size_t i = 0; i < sizeof data; i++)
         printf(" %02X", data[i]);
     printf("\n");
-    
+
     return send_packet(fd, data, sizeof data);
 }
 
