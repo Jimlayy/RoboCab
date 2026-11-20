@@ -15,6 +15,7 @@
 #include <unistd.h>
 #include "port.h"
 #include "uart_definitions.h"
+#include "command.h"
 
 #define SENSOR_DEVICE   "/dev/ttyUSB0"
 #define STEERING_DEVICE "/dev/ttyUSB1"
@@ -43,7 +44,7 @@ static void *port_thread(void *arg)
     return NULL;
 }
 
-int main(int argc, char *argv[])
+/*int main(int argc, char *argv[])
 {
     const char *sensor_device   = (argc > 1) ? argv[1] : SENSOR_DEVICE;
     const char *steering_device = (argc > 2) ? argv[2] : STEERING_DEVICE;
@@ -64,20 +65,50 @@ int main(int argc, char *argv[])
         return 1;
     }
 
+
+
     printf("Sensor: %s, steering: %s. Press Ctrl+C to stop.\n",
            sensor_device, steering_device);
 
-    pthread_t sensor_tid, steering_tid, calc_tid;
+    pthread_t sensor_tid, steering_tid, calc_tid, command_tid;
     pthread_create(&sensor_tid, NULL, port_thread, &sensor_fd);
     pthread_create(&steering_tid, NULL, port_thread, &steering_fd);
-    pthread_create(&calc_tid, NULL, calculation_thread, (void *)&running);
+    //pthread_create(&calc_tid, NULL, calculation_thread, (void *)&running);
+    pthread_create(&command_tid, NULL, command_thread,(void*) &running);
+    
 
     pthread_join(sensor_tid, NULL);
     pthread_join(steering_tid, NULL);
-    pthread_join(calc_tid, NULL);
+    //pthread_join(calc_tid, NULL);
+    pthread_join(command_tid, NULL);
 
     close(sensor_fd);
     close(steering_fd);
     printf("Stopped.\n");
+    return 0;
+}*/
+
+
+int main(int argc, char *argv[]){
+
+
+    const char *sensor_device   = (argc > 1) ? argv[1] : SENSOR_DEVICE;
+    const char *steering_device = (argc > 2) ? argv[2] : STEERING_DEVICE;
+
+    struct sigaction sa;
+    memset(&sa, 0, sizeof sa);
+    sa.sa_handler = on_signal;
+    sigaction(SIGINT, &sa, NULL);
+    sigaction(SIGTERM, &sa, NULL);
+
+    pthread_t command_tid;
+    printf("Creating thread");
+    pthread_create(&command_tid, NULL, command_thread,(void*) &running);
+
+    pthread_join(command_tid, NULL);
+
+    printf("Stopped.\n");
+    return 0;
+
     return 0;
 }

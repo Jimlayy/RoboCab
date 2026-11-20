@@ -11,6 +11,7 @@
   --line: #c9cfd4;
   --taxi: #ffc72c;
   --taxi-edge: #b8860b;
+  --btn-text: #222;
   --road: #5b6670;
   --start: #92f0b9;
   --stop: #ff6b6b;
@@ -20,6 +21,7 @@
   --log-ink: #e3e7ea;
   --radius: 10px;
   color-scheme: light;
+
 }
 
 @media (prefers-color-scheme: dark) {
@@ -64,11 +66,12 @@ body {
   grid-template-rows: auto auto auto auto 1fr auto;
   grid-template-areas:
     "title  title"
-    "conn   map"
-    "cmds   map"
-    "custom map"
+    "conn   camera"
+    "cmds   camera"
+    "custom camera"
+    "log    camera"
     "log    map"
-    "log    go";
+    "go     go";
 }
 
 h1                      { grid-area: title; }
@@ -77,8 +80,8 @@ body > p:nth-of-type(2) { grid-area: cmds; }
 body > p:nth-of-type(3) { grid-area: custom; }
 #log                    { grid-area: log; }
 body > svg              { grid-area: map; }
-body > p:last-of-type   { grid-area: go; }
-
+#camera-row             { grid-area: camera; }
+#go-row                 { grid-area: go; }
 h1 {
   font-size: clamp(1.5rem, 1.2rem + 1.2vw, 2.1rem);
   line-height: 1.15;
@@ -222,10 +225,146 @@ body > svg {
 
 
 .camera {
-  width: 640px;
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
   background-color: #15181b;
-  padding: 5px;
-  height: 340px;
+  border-radius: var(--radius);
+}
+
+/* Row: toggle on the left, GO fills the rest */
+.go-row {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  align-items: stretch;
+}
+.go-row #start-btn {
+  flex: 1;
+    padding: 12px 20px;
+
+}
+
+/* Bottom row: full width, two equal halves */
+#go-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+#start-btn { width: 100%; }
+
+/* Switch: white background, yellow half shows the active choice */
+.switch {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: rgba(240, 242, 244, 0.5);
+  border: 2px solid rgba(240, 242, 244, 0.5);
+  border-radius: rgba(240, 242, 244, 0.5);
+  box-shadow: 0 3px 0 var(--taxi-edge);
+  overflow: hidden;
+  cursor: pointer;
+  user-select: none;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1c2126;
+
+}
+
+/* The yellow half that slides */
+.switch-thumb {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 50%;
+  background: var(--taxi);
+  transition: transform 200ms ease-out;
+}
+
+.switch input:checked ~ .switch-thumb {
+  transform: translateX(100%);
+}
+
+
+/* Inactive side */
+.switch-option {
+  color: #8a9097;
+  transition: color 200ms ease-out;
+}
+
+/* Active side: Manuell when unchecked, Auto when checked */
+.switch input:not(:checked) ~ .switch-thumb + .switch-option,
+.switch input:checked ~ .switch-option:last-child {
+  color: #1c2126;
+}
+
+/* Text centered in each half, above the yellow part */
+.switch-option {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 16px;
+}
+
+/* Hidden checkbox (resets your global input rule) */
+.switch input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  padding: 0;
+  border: 0;
+  flex: none;
+}
+
+.switch:has(input:focus-visible) {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+
+/* Manual panel takes the map's place in the grid */
+#manual-panel {
+  grid-area: map;
+  aspect-ratio: 520 / 340;     /* same shape as the map, so the layout doesn't jump */
+  display: grid;
+  grid-template-columns: repeat(3, 64px);
+  grid-template-rows: repeat(3, 64px);
+  grid-template-areas:
+    ".    up   ."
+    "left stop right"
+    ".    down .";
+  gap: 10px;
+  place-content: center;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+#manual-panel .up    { grid-area: up; }
+#manual-panel .left  { grid-area: left; }
+#manual-panel .stop  { grid-area: stop; }
+#manual-panel .right { grid-area: right; }
+#manual-panel .down  { grid-area: down; }
+#manual-panel button { font-size: 1.4rem; padding: 0; }
+
+#manual-panel button.pressed {
+  transform: translateY(3px);
+  box-shadow: 0 0 0 var(--taxi-edge);
+}
+
+/* Show one or the other */
+body.manual > svg             { display: none; }
+body:not(.manual) #manual-panel { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .switch-thumb { transition: none; }
 }
 
 /* Narrow screens: one column, map and GO before the log */

@@ -85,3 +85,50 @@ startBtn.addEventListener("click", () => {
 new MutationObserver(updateStartButton).observe(statusEl, { attributes: true, attributeFilter: ["class"] });
 
 updateStartButton();
+
+
+const modeToggle = document.getElementById('mode-toggle');
+
+function applyMode() {
+  // Unchecked = Manuell, checked = Auto
+  document.body.classList.toggle('manual', !modeToggle.checked);
+}
+
+modeToggle.addEventListener('change', () => {
+  applyMode();
+  send(modeToggle.checked ? 'AUTO ON' : 'AUTO OFF');
+});
+
+applyMode();   // set the correct view on page load, without sending anything
+
+// WASD (+ Space for stop) in manual mode
+const keyMap = {
+  KeyW:  '.up',
+  KeyA:  '.left',
+  KeyS:  '.down',
+  KeyD:  '.right',
+  Space: '.stop',
+};
+
+document.addEventListener('keydown', (e) => {
+  if (!document.body.classList.contains('manual')) return;          // manual mode only
+  if (e.target.matches('input:not([type=checkbox]), textarea')) return; // not while typing
+  if (e.ctrlKey || e.metaKey || e.altKey) return;                    // let Ctrl+S etc. through
+
+  const selector = keyMap[e.code];
+  if (!selector) return;
+
+  e.preventDefault();          // stop Space from scrolling or toggling the switch
+  if (e.repeat) return;        // holding a key sends once, not 30 times a second
+
+  const btn = document.querySelector('#manual-panel ' + selector);
+  btn.classList.add('pressed');
+  btn.click();                 // same command as clicking the button
+});
+
+document.addEventListener('keyup', (e) => {
+  const selector = keyMap[e.code];
+  if (selector) {
+    document.querySelector('#manual-panel ' + selector).classList.remove('pressed');
+  }
+});
