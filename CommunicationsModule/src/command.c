@@ -90,6 +90,7 @@ void *command_thread(void *arg)
             break;
         }
         buf[n] = '\0';
+        printf("[cmd] recv %zd bytes: '%s'\n", n, buf);   // <-- här
         save_command(buf);
     }
 
