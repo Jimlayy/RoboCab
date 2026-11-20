@@ -13,7 +13,7 @@ LOGIC_HDRS := $(wildcard */logic/*.h)
 AVR_SRCS := $(wildcard Common/logic/*.c SteeringModule/logic/*.c SensorModule/logic/*.c)
 AVR_OBJS := $(patsubst %.c,build/avr/%.o,$(AVR_SRCS))
 
-.PHONY: avr camera-test common-test clean
+.PHONY: avr camera-test common-test comms-test steering-test sensor-test c-test clean
 
 avr: $(AVR_OBJS)
 
