@@ -63,6 +63,13 @@ int send_packet(int fd, const uint8_t *data, uint8_t len)
     }
     frame[2 + len] = checksum;
 
+
+    printf("[uart] frame (%u):", len + 3);
+    for (size_t i = 0; i < (size_t)len + 3; i++)
+        printf(" %02X", frame[i]);
+    printf("\n");
+
+
     return write_all(fd, frame, (size_t)len + 3);
 }
 
@@ -77,12 +84,13 @@ int send_manual_steering(int fd, bool motor_dir, bool motor_brake, uint8_t speed
     data[3] = speed;
     put_u16(&data[4], angle);
 
-      printf("[pkt] bytes (%zu):", sizeof data);
+    /*  printf("[pkt] bytes (%zu):", sizeof data);
     for (size_t i = 0; i < sizeof data; i++)
         printf(" %02X", data[i]);
     printf("\n");
 
     return send_packet(fd, data, sizeof data);
+    */
 }
 
 // send autonomos mode steering parameters.

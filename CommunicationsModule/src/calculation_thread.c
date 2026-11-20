@@ -26,7 +26,7 @@
 //#include "graph.h"
 
 #define PERIOD_MS     50     // 20 decisions per second
-#define MANUAL_SPEED  300    // speed when driving by hand (your units)
+#define MANUAL_SPEED  100    // speed when driving by hand (your units)
 #define MANUAL_ANGLE  30     // steering angle for LEFT/RIGHT
 
 /* Translate a manual command into speed and steering angle */
