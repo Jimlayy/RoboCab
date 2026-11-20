@@ -8,6 +8,13 @@ static int packet_count;
 static uint8_t packet_len;
 static uint8_t packet_data[UART_MAX_PAYLOAD_LENGTH];
 
+/* Results for test_two_parsers_are_independent, one set per parser. */
+static int count_a, count_b;
+static uint8_t len_a, len_b;
+static uint8_t data_a[UART_MAX_PAYLOAD_LENGTH];
+static uint8_t data_b[UART_MAX_PAYLOAD_LENGTH];
+
+
 // Store the result values
 static void on_packet(const uint8_t *data, uint8_t len)
 {
@@ -16,6 +23,22 @@ static void on_packet(const uint8_t *data, uint8_t len)
     for (uint8_t i = 0; i < len; i++) {
         packet_data[i] = data[i];
     }
+}
+
+/* For test_two_parsers_are_independent */
+static void on_packet_a(const uint8_t *data, uint8_t len)
+{
+    count_a++;
+    len_a = len;
+    memcpy(data_a, data, len);
+}
+
+/* For test_two_parsers_are_independent */
+static void on_packet_b(const uint8_t *data, uint8_t len)
+{
+    count_b++;
+    len_b = len;
+    memcpy(data_b, data, len);
 }
 
 static parser_t parser;
@@ -66,7 +89,7 @@ void test_bad_checksum_is_dropped(void)
 
 void test_noise_before_header_is_ignored(void)
 {
-    const uint8_t bytes[] = {5, 67, 420, UART_HEADER_BYTE, 1, 42, 42};
+    const uint8_t bytes[] = {5, 67, 54, UART_HEADER_BYTE, 1, 42, 42};
     feed(bytes, sizeof bytes);
 
     TEST_ASSERT_EQUAL_INT(1, packet_count);
@@ -136,28 +159,37 @@ void test_checksum_is_reset_between_packets(void)
 
 void test_two_parsers_are_independent(void)
 {
-    parser_t parser1, parser2;
-    uint8_t packet_count1 = 0, packet_count2 = 0;
+    parser_t parser_a, parser_b;
+    count_a = 0;
+    count_b = 0;
+    parser_init(&parser_a, on_packet_a);
+    parser_init(&parser_b, on_packet_b);
 
-    void on_packet1(const uint8_t *data, uint8_t len) { packet_count1++; }
-    void on_packet2(const uint8_t *data, uint8_t len) { packet_count2++; }
+    /* Half a packet to A: header, length 2 and the first data byte */
+    parser_feed(&parser_a, UART_HEADER_BYTE);
+    parser_feed(&parser_a, 2);
+    parser_feed(&parser_a, 0x05);
 
-    parser_init(&parser1, on_packet1);
-    parser_init(&parser2, on_packet2);
+    /* A whole packet to B in the meantime */
+    parser_feed(&parser_b, UART_HEADER_BYTE);
+    parser_feed(&parser_b, 1);
+    parser_feed(&parser_b, 0x08);
+    parser_feed(&parser_b, 0x08);           /* checksum */
 
-    const uint8_t bytes[] = {UART_HEADER_BYTE, 1, 42, 42};
-    feed(bytes, sizeof bytes);  /* feed to global parser */
+    TEST_ASSERT_EQUAL_INT(0, count_a);
+    TEST_ASSERT_EQUAL_INT(1, count_b);
+    TEST_ASSERT_EQUAL_UINT8(1, len_b);
+    TEST_ASSERT_EQUAL_UINT8(0x08, data_b[0]);
 
-    TEST_ASSERT_EQUAL_INT(0, packet_count1);
-    TEST_ASSERT_EQUAL_INT(0, packet_count2);
+    /* The rest of A's packet */
+    parser_feed(&parser_a, 0x06);
+    parser_feed(&parser_a, 0x05 ^ 0x06);    /* checksum */
 
-    for (size_t i = 0; i < sizeof bytes; i++) {
-        parser_feed(&parser1, bytes[i]);
-        parser_feed(&parser2, bytes[i]);
-    }
-
-    TEST_ASSERT_EQUAL_INT(1, packet_count1);
-    TEST_ASSERT_EQUAL_INT(1, packet_count2);
+    TEST_ASSERT_EQUAL_INT(1, count_a);
+    TEST_ASSERT_EQUAL_INT(1, count_b);
+    TEST_ASSERT_EQUAL_UINT8(2, len_a);
+    TEST_ASSERT_EQUAL_UINT8(0x05, data_a[0]);
+    TEST_ASSERT_EQUAL_UINT8(0x06, data_a[1]);
 }
 
 
@@ -168,6 +200,11 @@ void test_length_zero_is_dropped(void)
     feed(bytes, sizeof bytes);
 
     TEST_ASSERT_EQUAL_INT(0, packet_count);
+
+    const uint8_t bytes2[] = {UART_HEADER_BYTE, 2, 10, 20, 0x0A ^ 0x14};
+    feed(bytes2, sizeof bytes2);
+
+    TEST_ASSERT_EQUAL_INT(1, packet_count);
 }
 
 void test_length_one_is_accepted(void)
@@ -202,7 +239,7 @@ void test_max_length_is_accepted(void)
 
 void test_too_long_packet_is_dropped(void)
 {
-    uint8_t bytes[UART_MAX_PAYLOAD_LENGTH + 4];
+    uint8_t bytes[UART_MAX_PAYLOAD_LENGTH + 4] = {0};
     bytes[0] = UART_HEADER_BYTE;
     bytes[1] = UART_MAX_PAYLOAD_LENGTH + 1;  /* too long */
     for (uint8_t i = 0; i < UART_MAX_PAYLOAD_LENGTH + 1; i++) {
@@ -212,6 +249,11 @@ void test_too_long_packet_is_dropped(void)
     feed(bytes, sizeof bytes);
 
     TEST_ASSERT_EQUAL_INT(0, packet_count);
+
+    const uint8_t bytes2[] = {UART_HEADER_BYTE, 2, 10, 20, 0x0A ^ 0x14};
+    feed(bytes2, sizeof bytes2);
+
+    TEST_ASSERT_EQUAL_INT(1, packet_count);
 }
 
 // With E1 and E2, checksum is tested both just below, just above and exactly at the correct value
@@ -225,7 +267,7 @@ void test_checksum_one_below_is_dropped(void)
 
 
 // Return value tests
-void test_returns_message_id_after_valid_packet(void)
+void test_returns_first_byte_after_valid_packet(void)
 {
     const uint8_t bytes[] = {UART_HEADER_BYTE, 2, 10, 20, 0x0A ^ 0x14};
     int16_t last = feed(bytes, sizeof bytes);
@@ -233,12 +275,12 @@ void test_returns_message_id_after_valid_packet(void)
     TEST_ASSERT_EQUAL_INT16(10, last);
 }
 
-void test_returns_negative_one_in_the_middle_of_a_packet(void)
+void test_returns_SUCCESSFUL_BYTE_in_the_middle_of_a_packet(void)
 {
-    const uint8_t bytes[] = {UART_HEADER_BYTE, 2, 10};
+    const uint8_t bytes[] = {UART_HEADER_BYTE, 2, 10, 20};
     int16_t last = feed(bytes, sizeof bytes);
 
-    TEST_ASSERT_EQUAL_INT16(-1, last);
+    TEST_ASSERT_EQUAL_INT16(SUCCESSFUL_BYTE, last);
 }
 
 void test_returns_negative_one_after_bad_checksum(void)
@@ -247,6 +289,38 @@ void test_returns_negative_one_after_bad_checksum(void)
     int16_t last = feed(bytes, sizeof bytes);
 
     TEST_ASSERT_EQUAL_INT16(-1, last);
+}
+
+void test_returns_negative_one_for_invalid_length(void)
+{
+    const uint8_t bytes[] = {UART_HEADER_BYTE, 0};  /* invalid length */
+    int16_t last = feed(bytes, sizeof bytes);
+
+    TEST_ASSERT_EQUAL_INT16(-1, last);
+}
+
+void test_returns_negative_one_before_header(void)
+{
+    const uint8_t bytes[] = {1, 2, 3, 4, 5};
+    int16_t last = feed(bytes, sizeof bytes);
+
+    TEST_ASSERT_EQUAL_INT16(-1, last);
+}
+
+void test_returns_SUCCESSFUL_BYTE_after_header(void)
+{
+    const uint8_t bytes[] = {UART_HEADER_BYTE};
+    int16_t last = feed(bytes, sizeof bytes);
+
+    TEST_ASSERT_EQUAL_INT16(SUCCESSFUL_BYTE, last);
+}
+
+void test_returns_SUCCESSFUL_BYTE_after_length(void)
+{
+    const uint8_t bytes[] = {UART_HEADER_BYTE, 2};
+    int16_t last = feed(bytes, sizeof bytes);
+
+    TEST_ASSERT_EQUAL_INT16(SUCCESSFUL_BYTE, last);
 }
 
 int main(void)
@@ -268,8 +342,12 @@ int main(void)
     RUN_TEST(test_too_long_packet_is_dropped);
     RUN_TEST(test_checksum_one_below_is_dropped);
 
-    RUN_TEST(test_returns_message_id_after_valid_packet);
-    RUN_TEST(test_returns_negative_one_in_the_middle_of_a_packet);
+    RUN_TEST(test_returns_first_byte_after_valid_packet);
+    RUN_TEST(test_returns_SUCCESSFUL_BYTE_in_the_middle_of_a_packet);
     RUN_TEST(test_returns_negative_one_after_bad_checksum);
+    RUN_TEST(test_returns_negative_one_for_invalid_length);
+    RUN_TEST(test_returns_negative_one_before_header);
+    RUN_TEST(test_returns_SUCCESSFUL_BYTE_after_header);
+    RUN_TEST(test_returns_SUCCESSFUL_BYTE_after_length);
     return UNITY_END();
 }
