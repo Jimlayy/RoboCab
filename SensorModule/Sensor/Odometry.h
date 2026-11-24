@@ -10,8 +10,6 @@
 #include <avr/io.h>
 #include <util/atomic.h>
 
-#include "../logic/odometry.h"
-
 static volatile uint32_t left_pulses, right_pulses; // Pulser sedan start
 static volatile uint32_t left_last_ms, right_last_ms; // Tid för senaste puls
 static volatile uint32_t ms_counter; // ms sedan start
