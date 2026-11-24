@@ -445,7 +445,7 @@ static uint8_t imu_read_regs(uint8_t addr, uint8_t reg, uint8_t *buf, uint8_t n)
  24e:	08 95       	ret
 
 00000250 <uart_putchar>:
-#define DEBUG false					// Readable data in tera term
+
 
 // custom output function
 int uart_putchar(char c, FILE *stream) {   // print char to stream (UART)

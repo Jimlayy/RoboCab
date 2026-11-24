@@ -10,7 +10,6 @@
 // UART0
 // PA2(ADC2) input for IR-dist
 
-
 #include <avr/io.h>
 #include <stdio.h>
 #include <stdlib.h>
