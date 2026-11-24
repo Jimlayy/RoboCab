@@ -13,7 +13,7 @@ LOGIC_HDRS := $(wildcard */logic/*.h)
 AVR_SRCS := $(wildcard Common/logic/*.c SteeringModule/logic/*.c SensorModule/logic/*.c)
 AVR_OBJS := $(patsubst %.c,build/avr/%.o,$(AVR_SRCS))
 
-.PHONY: avr camera-test common-test clean
+.PHONY: avr camera-test common-test comms-test steering-test sensor-test c-test clean
 
 avr: $(AVR_OBJS)
 
@@ -24,9 +24,67 @@ build/avr/%.o: %.c $(LOGIC_HDRS)
 camera-test:
 	cd CameraModule && python3 -m pytest tests -v
 
-common-test:
-	mkdir -p build
-	gcc -std=c11 -Wall -Wextra -IVendor/unity -ICommon/Logic Common/tests/test_parser.c Common/Logic/parser.c Vendor/unity/unity.c -o build/test_parser && ./build/test_parser
+
+# ===================== C tests (Unity) =====================
+# Every module follows the same convention:
+#   <Module>/tests/test_<name>.c tests <code folder>/<name>.c
+# A new test file is picked up automatically. Run one module with
+# make <module>-test, or every C test with make c-test.
+
+UNITY := Vendor/unity
+TEST_CFLAGS := -std=c11 -Wall -Wextra -I$(UNITY)
+
+# Runs every test program given as a prerequisite, even if one fails.
+RUN_TESTS = @status=0; for t in $^; do ./$$t || status=1; done; exit $$status
+
+# ---- Common: tests in Common/tests, code in Common/logic ----
+COMMON_TESTS := $(patsubst Common/tests/%.c,build/common/%,$(wildcard Common/tests/test_*.c))
+
+build/common/test_%: Common/tests/test_%.c Common/logic/%.c $(UNITY)/unity.c
+	@mkdir -p $(@D)
+	$(CC) $(TEST_CFLAGS) -ICommon/logic $^ -o $@
+
+common-test: $(COMMON_TESTS)
+	$(RUN_TESTS)
+
+# ---- Communications module: tests in CommunicationsModule/tests, code in src/ ----
+COMMS_TESTS := $(patsubst CommunicationsModule/tests/%.c,build/comms/%,$(wildcard CommunicationsModule/tests/test_*.c))
+
+build/comms/test_%: CommunicationsModule/tests/test_%.c CommunicationsModule/src/%.c $(UNITY)/unity.c
+	@mkdir -p $(@D)
+	$(CC) $(TEST_CFLAGS) -pthread -ICommunicationsModule/include -ICommon/logic $^ -o $@
+
+comms-test: $(COMMS_TESTS)
+	$(RUN_TESTS)
+
+# ---- Steering module: tests in SteeringModule/tests, code in SteeringModule/logic ----
+# Only code without <avr/io.h> can be tested here, so it goes in logic/.
+STEERING_TESTS := $(patsubst SteeringModule/tests/%.c,build/steering/%,$(wildcard SteeringModule/tests/test_*.c))
+
+build/steering/test_%: SteeringModule/tests/test_%.c SteeringModule/logic/%.c $(UNITY)/unity.c
+	@mkdir -p $(@D)
+	$(CC) $(TEST_CFLAGS) -ISteeringModule/logic -ICommon/logic $^ -o $@
+
+steering-test: $(STEERING_TESTS)
+	$(RUN_TESTS)
+
+# ---- Sensor module: tests in SensorModule/tests, code in SensorModule/logic ----
+# Only code without <avr/io.h> can be tested here, so it goes in logic/.
+SENSOR_TESTS := $(patsubst SensorModule/tests/%.c,build/sensor/%,$(wildcard SensorModule/tests/test_*.c))
+
+build/sensor/test_%: SensorModule/tests/test_%.c SensorModule/logic/%.c $(UNITY)/unity.c
+	@mkdir -p $(@D)
+	$(CC) $(TEST_CFLAGS) -ISensorModule/logic -ICommon/logic $^ -o $@
+
+sensor-test: $(SENSOR_TESTS)
+	$(RUN_TESTS)
+
+# ---- All C tests ----
+C_TESTS := $(COMMON_TESTS) $(COMMS_TESTS) $(STEERING_TESTS) $(SENSOR_TESTS)
+
+c-test: $(C_TESTS)
+	$(RUN_TESTS)
+
 
 clean:
 	rm -rf build
