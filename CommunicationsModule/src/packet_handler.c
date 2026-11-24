@@ -28,11 +28,14 @@ void save_packet(const uint8_t *data, uint8_t len)
             return;
         }
         sensor_data_t s = {0};
-        s.distance    = get_u16(&data[1]);
-        s.speed_left  = get_u16(&data[3]);             // Not yet decided format
-        s.speed_right = get_u16(&data[5]);
-        s.gyro_z      = get_i16(&data[7]);
-        s.accel_x     = get_i16(&data[9]);
+        s.distance              = get_u16(&data[1]);
+        s.odo_left_pulse        = get_u32(&data[3]);             // Not yet decided format
+        s.odo_right_pulse       = get_u32(&data[7]);
+        s.odo_left_tslp         = get_u32(&data[11]);
+        s.odo_right_tslp        = get_u32(&data[15]); 
+        s.accel_x               = get_i16(&data[17]);
+        s.gyro_z                = get_i16(&data[19]);
+        s.imu_ok                = data[20];
         clock_gettime(CLOCK_MONOTONIC, &s.timestamp);
         sensor_data_update(&s);
         break;

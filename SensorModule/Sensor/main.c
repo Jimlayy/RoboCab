@@ -1,6 +1,7 @@
 #include "DistanceSensor.h"
 #include "Odometry.h"
 #include "IMU.h"
+#include "protocol.h"
 
 #define F_CPU 16000000UL
 #define BAUD 9600
@@ -20,8 +21,8 @@ int uart_putchar(char c, FILE *stream) {   // print char to stream (UART)
 static FILE mystdout = FDEV_SETUP_STREAM(uart_putchar, NULL, _FDEV_SETUP_WRITE);
 
 #define PACKET_HEADER       0xAA
-#define PAYLOAD_LENGTH      23
-#define PACKET_LENGTH       26
+#define PAYLOAD_LENGTH      24
+#define PACKET_LENGTH       27
 
 // Add a 32-bit value to the payload, least significant byte first.
 void append_u32(uint8_t *payload, uint8_t *index, uint32_t value)
@@ -54,6 +55,9 @@ void send_packet(odometry_sample_t odo, uint16_t dist, imu_sample_t imu)
 	// Header and payload length
 	packet[index++] = PACKET_HEADER;
 	packet[index++] = PAYLOAD_LENGTH;
+
+	// packet identifier
+	packet[index++] = (uint8_t)PKT_SENSOR
 
 	// distance
 	append_u16(packet, &index, (int16_t)dist);
