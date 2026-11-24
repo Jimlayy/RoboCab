@@ -7,9 +7,9 @@ TARGET=main
 
 # Directories
 SRC_DIR1 = src-1284
-SRC_DIR2 = ../Common/Logic
+SRC_DIR2 = ../Common/logic
 INC_DIR1 = inc
-INC_DIR2 = ../Common/Logic
+INC_DIR2 = ../Common/logic
 BUILD_DIR = build-1284
 
 # Added -I${INC_DIR2} so the compiler finds the headers in the Common logic folder

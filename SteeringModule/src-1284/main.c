@@ -27,7 +27,7 @@ int main(void) {
 	init_custom_stdout();
     while (1) {
 		while (uart_read_available(rx_head, rx_tail)){
-			uint8_t byte = read_uart_byte(&rx_tail, rx_recieve_buffer);
+			uint8_t byte = read_uart_byte(&rx_tail, rx_recieve_buffer);	
 			message_id = parser_feed(&uart_parser, byte);
 
 			if (message_id >= 0) {

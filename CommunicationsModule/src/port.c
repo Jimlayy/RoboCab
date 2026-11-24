@@ -9,7 +9,34 @@
 #include "port.h"
 #include "parser.h"
 #include "packet_handler.h"
+#include <time.h>
+#include "sensor_data.h"
 
+#define DEBUG_SENSOR 1   // set to 0 to turn the print off
+
+#if DEBUG_SENSOR
+static void debug_print_sensor_data(void)
+{
+    static struct timespec last_ts = {0};
+    sensor_data_t s;
+    get_sensor_data(&s);   // <-- rename to your getter
+
+    // Only print when a new packet has been saved since the last print
+    if (s.timestamp.tv_sec == last_ts.tv_sec &&
+        s.timestamp.tv_nsec == last_ts.tv_nsec)
+        return;
+    last_ts = s.timestamp;
+
+    fprintf(stderr,
+        "[sensor] t=%ld.%03ld dist=%u odoL=%lu odoR=%lu tslpL=%lu tslpR=%lu "
+        "ax=%d gz=%d imu_ok=%u\n",
+        (long)s.timestamp.tv_sec, s.timestamp.tv_nsec / 1000000L,
+        (unsigned)s.distance,
+        (unsigned long)s.odo_left_pulse, (unsigned long)s.odo_right_pulse,
+        (unsigned long)s.odo_left_tslp,  (unsigned long)s.odo_right_tslp,
+        (int)s.accel_x, (int)s.gyro_z, (unsigned)s.imu_ok);
+}
+#endif
 static pthread_mutex_t write_lock = PTHREAD_MUTEX_INITIALIZER;
 
 static speed_t to_speed(int baud)
@@ -87,6 +114,9 @@ int poll_port(int fd, volatile sig_atomic_t *running)
             }
             for (ssize_t i = 0; i < n; i++)
                 parser_feed(&package_context ,buf[i]);
+                #if DEBUG_SENSOR
+                    debug_print_sensor_data();
+                #endif
         }
     }
     return 0;

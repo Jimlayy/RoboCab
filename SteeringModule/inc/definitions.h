@@ -31,7 +31,7 @@ typedef enum {
 #define SERVO_SPAN    (SERVO_RAW_MAX - SERVO_RAW_MIN)
 
 // Signed trim percentage (-50 to +50) — scales automatically with clock & prescaler
-#define SERVO_TRIM_PERCENT 4
+#define SERVO_TRIM_PERCENT 15
 #define SERVO_TRIM_OFFSET  ((int32_t)SERVO_SPAN * SERVO_TRIM_PERCENT / 100)
 
 #define SERVO_PULSE_WIDTH_MIN   (SERVO_RAW_MIN + SERVO_TRIM_OFFSET)

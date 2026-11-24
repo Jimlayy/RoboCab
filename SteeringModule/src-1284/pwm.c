@@ -79,19 +79,20 @@ void assign_pid_output(int32_t pid_output, uint8_t sensor_mode){
 void run_new_pid(){
     if (pid_data.new_data_is_ready) {
         pid_data.new_data_is_ready = 0;
+        
+        int16_t error = pid_data.sensor_in - pid_data.wanted_in;
+        int16_t delta_error = error - pid_data.prev_error;
+        pid_data.prev_error = error;
 
-        int16_t delta_error = pid_data.error - pid_data.prev_error;
-        pid_data.prev_error = pid_data.error;
-
-        int32_t proportional = (int32_t)pid_params.k_p * pid_data.error;
+        int32_t proportional = (int32_t)pid_params.k_p * error;
 
         if (pid_data.dt > 100){
             pid_data.dt = 100;  // cap maximum dt (shouldn't take this long between readings) just in case
         }
 
         uint16_t reciprocal_dt = pgm_read_word(&dt_reciprocal_LUT[pid_data.dt]);    // fetch reciprocal version of dt to avoid division
-        int32_t raw_derivative = (int32_t)delta_error * reciprocal_dt * pid_params.k_d;
-        int32_t derivative = (raw_derivative + (1 << 15)) >> 16; 
+        int32_t raw_derivative = (int32_t)delta_error * reciprocal_dt * pid_params.k_d; // calculate raw derivative term with the reciprocal 
+        int32_t derivative = (raw_derivative + (1 << 15)) >> 16;    // add 2^15 for better integer rounding and shift 16 bits right (16 bit reciprocal)
         int32_t output = proportional + derivative;
         printf("Sensor mode: %u --- PD-output: %li\n", pid_data.sensor_mode, output);
 
@@ -117,12 +118,14 @@ void dispatch_data(const uint8_t *payload, uint8_t payload_length){
         motor_servo_data.motor_brake = payload[MOTOR_BRAKE_IDX];
         motor_servo_data.motor_speed = payload[MOTOR_SPEED_IDX];
 
-        if (((uint16_t)payload[SERVO_PULSE_WIDTH_HB_IDX] << 8) + payload[SERVO_PULSE_WIDTH_LB_IDX] < SERVO_PULSE_WIDTH_MIN) {
+        uint16_t servo_pw_w_offset = (uint16_t)((payload[SERVO_PULSE_WIDTH_HB_IDX] << 8) + payload[SERVO_PULSE_WIDTH_LB_IDX]) + SERVO_TRIM_OFFSET;
+
+        if (servo_pw_w_offset < SERVO_PULSE_WIDTH_MIN) {
             motor_servo_data.servo_pulse_width = SERVO_PULSE_WIDTH_MIN;
-        } else if (((uint16_t)payload[SERVO_PULSE_WIDTH_HB_IDX] << 8) + payload[SERVO_PULSE_WIDTH_LB_IDX] > SERVO_PULSE_WIDTH_MAX){
+        } else if (servo_pw_w_offset > SERVO_PULSE_WIDTH_MAX){
             motor_servo_data.servo_pulse_width = SERVO_PULSE_WIDTH_MAX;
         } else {
-            motor_servo_data.servo_pulse_width = (payload[SERVO_PULSE_WIDTH_HB_IDX] << 8) | payload[SERVO_PULSE_WIDTH_LB_IDX];
+            motor_servo_data.servo_pulse_width = servo_pw_w_offset;
         }
 
         printf("Motor Direction: %u\n", motor_servo_data.motor_dir);
@@ -134,7 +137,8 @@ void dispatch_data(const uint8_t *payload, uint8_t payload_length){
         break;
     case PID_DATA_MSG_ID:
         pid_data.dt = payload[DT_IDX];
-        pid_data.error = (payload[ERROR_H_IDX] << 8) | (payload[ERROR_L_IDX]);
+        pid_data.sensor_in = (payload[SENSOR_IN_H_IDX] << 8) | (payload[SENSOR_IN_L_IDX]);
+        pid_data.wanted_in = (payload[WANTED_SENSOR_IN_H_IDX] << 8) | (payload[WANTED_SENSOR_IN_L_IDX]);
         pid_data.sensor_mode = payload[SENSOR_MODE_IDX];
         pid_data.new_data_is_ready = 1;
     break;
