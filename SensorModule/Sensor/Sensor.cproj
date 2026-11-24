@@ -29,7 +29,7 @@
     <eraseonlaunchrule>0</eraseonlaunchrule>
     <EraseKey />
     <avrtool>com.atmel.avrdbg.tool.atmelice</avrtool>
-    <avrtoolserialnumber>J42700069354</avrtoolserialnumber>
+    <avrtoolserialnumber>J41800088086</avrtoolserialnumber>
     <avrdeviceexpectedsignature>0x1E9705</avrdeviceexpectedsignature>
     <custom>
       <ToolOptions>
@@ -65,10 +65,10 @@
         <InterfaceName>JTAG</InterfaceName>
       </ToolOptions>
       <ToolType>com.atmel.avrdbg.tool.atmelice</ToolType>
-      <ToolNumber>J42700069354</ToolNumber>
+      <ToolNumber>J41800088086</ToolNumber>
       <ToolName>Atmel-ICE</ToolName>
     </com_atmel_avrdbg_tool_atmelice>
-    <avrtoolinterfaceclock>125000</avrtoolinterfaceclock>
+    <avrtoolinterfaceclock>200000</avrtoolinterfaceclock>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
     <ToolchainSettings>
