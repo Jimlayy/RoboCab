@@ -19,7 +19,7 @@ static uint32_t get_u32(const uint8_t *p)
 }
 
 // Split a 16-bit number into two bytes (little-endian: low byte first)
-static void put_u16(uint8_t *p, uint16_t v) { p[0] = v & 0xFF; p[1] = v >> 8; }
+static void put_u16(uint8_t *p, uint16_t v) { p[0] = (v >> 8) & 0xFF; p[1] = v; }
 
 /* ---------- Receiving ---------- */
 
@@ -74,10 +74,10 @@ int send_packet(int fd, const uint8_t *data, uint8_t len)
     frame[2 + len] = checksum;
 
 
-//    printf("[uart] frame (%u):", len + 3);
-  //  for (size_t i = 0; i < (size_t)len + 3; i++)
-    //    printf(" %02X", frame[i]);
-    //printf("\n");
+    printf("[uart] frame (%u):", len + 3);
+    for (size_t i = 0; i < (size_t)len + 3; i++)
+        printf(" %02X", frame[i]);
+    printf("\n");
 
 
     return write_all(fd, frame, (size_t)len + 3);
