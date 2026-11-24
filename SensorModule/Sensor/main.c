@@ -8,6 +8,7 @@
 #define WHEEL_CIRCUMFERENCE_MM 120      // not measured yet (D-23): prints pulses only
 #define STOP_TIMEOUT_MS 1000          // provisional (D-25)
 #define SENSOR_DEBUG 0					// Readable data in tera term
+#define HIGH_BAUD 115200
 
 
 // custom output function
@@ -57,7 +58,7 @@ void send_packet(odometry_sample_t odo, uint16_t dist, imu_sample_t imu)
 	packet[index++] = PAYLOAD_LENGTH;
 
 	// packet identifier
-	packet[index++] = (uint8_t)PKT_SENSOR
+	packet[index++] = (uint8_t)PKT_SENSOR;
 
 	// distance
 	append_u16(packet, &index, (int16_t)dist);
@@ -126,6 +127,7 @@ int main(void) {
 			printf("Left Time since last pulse: %lu\n", (unsigned long)odo.left_tslp);
 			printf("Acceleration %d\n", imu_accel_mg(imu.ax)); // 2 bytes
 			printf("Gyro: %d\n", imu_gyro_mdps(imu.gz)); // 2 bytes
+			printf("IMU ok: %u\n", imu.ok);
 			printf("Right pulses: %lu\n", (unsigned long)odo.right_pulses);
 			printf("Left pulses: %lu\n", (unsigned long)odo.left_pulses);
 		}
