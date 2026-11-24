@@ -6,7 +6,8 @@
 #define BAUD 9600
 #define WHEEL_CIRCUMFERENCE_MM 120      // not measured yet (D-23): prints pulses only
 #define STOP_TIMEOUT_MS 1000          // provisional (D-25)
-#define DEBUG false					// Readable data in tera term
+#define SENSOR_DEBUG 0					// Readable data in tera term
+
 
 // custom output function
 int uart_putchar(char c, FILE *stream) {   // print char to stream (UART)
@@ -115,7 +116,7 @@ int main(void) {
 		odo = sample_odometry();
 		imu = sample_IMU();
 		
-		if(DEBUG) {
+		if(SENSOR_DEBUG) {
 			itoa(dist, val_adc, 10);
 			printf("Distance: %s\n", val_adc);	
 			printf("Right Time since last pulse: %lu\n", (unsigned long)odo.right_tslp);
