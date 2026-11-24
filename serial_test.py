@@ -35,13 +35,13 @@ with serial.Serial(PORT, BAUD, timeout=0.5) as ser:
     #             time.sleep(0.25)  # Delay between packets (e.g., 0.02 for 50 Hz, 0.5 for slow inspection)
 
     print("FULL LEFT")
-    pkt = build_packet(speed=0x00, direction=0x00, servo_ticks=125, brake=0)
+    pkt = build_packet(speed=0x00, direction=0x00, servo_ticks=1000, brake=0)
     ser.write(pkt)
     time.sleep(5)  # Allow time if opening the port resets the AVR
     print()
 
     print("FULL RIGHT")
-    pkt = build_packet(speed=0x00, direction=0x00, servo_ticks=250, brake=0)
+    pkt = build_packet(speed=0x00, direction=0x00, servo_ticks=2000, brake=0)
     ser.write(pkt)
     time.sleep(5)  # Allow time if opening the port resets the AVR
     print()
