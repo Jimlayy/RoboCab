@@ -15,9 +15,7 @@ typedef enum {
 typedef struct {
     drive_cmd_t drive;      // latest manual driving command
     int auto_mode;          // 1 = autonomous, 0 = manual
-    char start_pred[32];
     char start[32];         // pickup
-    char goal_pred[32];
     char goal[32];          // drop-off
     int new_mission;        // 1 the first time it is read after a START
 } command_data_t;

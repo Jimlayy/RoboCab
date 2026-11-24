@@ -14,7 +14,7 @@ void sensor_data_update(const sensor_data_t *s)
     pthread_mutex_unlock(&lock);
 }
 
-int sensor_data_get(sensor_data_t *out)
+int get_sensor_data(sensor_data_t *out)
 {
     int result = -1;
 

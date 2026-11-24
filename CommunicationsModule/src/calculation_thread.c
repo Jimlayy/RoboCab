@@ -16,38 +16,28 @@
  */
 #include <stddef.h>
 #include <time.h>
+#include <stdint.h>
 #include "command.h"
 #include "sensor_data.h"
 #include "packet_handler.h"
+#include "calculation_thread.h"
 #include <signal.h>
 #include <stdbool.h>
 //#include "graph.h"
 
 #define PERIOD_MS     50     // 20 decisions per second
-#define MANUAL_SPEED  300    // speed when driving by hand (your units)
+#define MANUAL_SPEED  100    // speed when driving by hand (your units)
 #define MANUAL_ANGLE  30     // steering angle for LEFT/RIGHT
 
-typedef struct {
-    int from_node;        // last node passed (confirmed by the camera)
-    int to_node;          // next node on the route
-    float dist_on_edge;   // distance driven since from_node (odometry), in cm
-    int route_index;      // where in the planned route list we are
-} car_state_t;
-
-typedef struct {
-    int steering_fd;
-    volatile sig_atomic_t *running;
-} calc_args_t;
-
 /* Translate a manual command into speed and steering angle */
-static void manual_directive(drive_cmd_t d, int16_t *speed, int16_t *angle)
+static void manual_directive(drive_cmd_t d, bool* motor_dir, bool* motor_brake, int16_t *speed, int16_t *angle)
 {
     switch (d) {
-    case DRIVE_FORWARD: *speed =  MANUAL_SPEED; *angle = 0;             break;
-    case DRIVE_BACK:    *speed = -MANUAL_SPEED; *angle = 0;             break;
-    case DRIVE_LEFT:    *speed =  MANUAL_SPEED; *angle = -MANUAL_ANGLE; break;
-    case DRIVE_RIGHT:   *speed =  MANUAL_SPEED; *angle =  MANUAL_ANGLE; break;
-    default:            *speed = 0;             *angle = 0;             break;  // STOP
+    case DRIVE_FORWARD: *speed =  MANUAL_SPEED; *angle = 1500; *motor_dir = 1; *motor_brake = 0;            break;
+    case DRIVE_BACK:    *speed =  MANUAL_SPEED; *angle = 1500; *motor_dir = 0; *motor_brake = 0;             break;
+    case DRIVE_LEFT:    *speed =  MANUAL_SPEED; *angle = 1500 - MANUAL_ANGLE; *motor_dir = 1; *motor_brake = 0; break;
+    case DRIVE_RIGHT:   *speed =  MANUAL_SPEED; *angle = 1500 + MANUAL_ANGLE; *motor_dir = 1; *motor_brake = 0; break;
+    default:            *speed = 0;             *angle = 1500;     *motor_dir = 1;     *motor_brake = 1;     break;  // STOP
     }
 }
 
@@ -63,7 +53,7 @@ static void wait_next_period(struct timespec *next)
 void *calculation_thread(void *ctx)
 {
     //context need from main
-    calc_args_t *a = ctx;
+    calc_args_t *a = ctx; 
     //data acquired from sensors
     command_data_t cmd;
     sensor_data_t  sd;
@@ -77,10 +67,11 @@ void *calculation_thread(void *ctx)
 
     while (*a->running) {
         command_data_get(&cmd);
-        sensor_data_get(&sd);
+        get_sensor_data(&sd);
 
         if (!cmd.auto_mode) {
-            manual_directive(cmd.drive, &speed, &angle);
+            manual_directive(cmd.drive, &direction, &brake, &speed, &angle);
+            send_manual_steering(a->steering_fd, direction, brake, speed, angle);
         } else {
             if (cmd.new_mission) {
                 // look up cmd.start / cmd.goal in the map, run shortest_path_no_uturn,
@@ -88,15 +79,15 @@ void *calculation_thread(void *ctx)
             }
             // localisation: advance along the route when the next node is confirmed
             // decide speed and angle from the route, camera and sensor data
-            speed = 0; angle = 0;           // TODO: the real decision
+            speed = 0; angle = 1500;           // TODO: the real decision
             if (sd.distance < 200)          // obstacle ahead (requirement 23)
                 speed = 0;
         }
 
-        send_steering(a->steering_fd, speed, angle);
+        //send_steering(a->steering_fd, speed, angle);
         wait_next_period(&next);
     }
 
-    send_steering(a->steering_fd, 0, 0);    // leave the car standing still
+    //send_steering(a->steering_fd, 0, 0);    // leave the car standing still
     return NULL;
 }
