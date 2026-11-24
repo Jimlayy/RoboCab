@@ -1,0 +1,8 @@
+#ifndef UART_DEFINITIONS_H
+#define UART_DEFINITIONS_H
+
+#define BAUD_RATE 9600
+#define UART_MAX_PAYLOAD_LENGTH 64
+#define UART_HEADER_BYTE 0xAA
+
+#endif

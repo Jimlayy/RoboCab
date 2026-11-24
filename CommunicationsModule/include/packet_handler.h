@@ -1,0 +1,25 @@
+#ifndef PACKET_HANDLER_H
+#define PACKET_HANDLER_H
+
+#include <stdint.h>
+#include <stdbool.h>
+
+/* --- Receiving --- */
+
+/* Decode a complete packet (without header, length and footer) and store
+ * the values in the corresponding shared memory. data[0] is the packet type. */
+void save_packet(const uint8_t *data, uint8_t len);
+
+/* --- Sending --- */
+
+/* Wrap data in [HEADER][len][data...][FOOTER] and write it to fd.
+ * data[0] must be the packet type. Returns 0 on success, -1 on error. */
+int send_packet(int fd, const uint8_t *data, uint8_t len);
+
+/* Send speed and steering angle to the steering module.
+ * Returns 0 on success, -1 on error. */
+int send_manual_steering(int fd, bool motor_dir, bool motor_brake, uint8_t speed, uint16_t angle);
+
+int send_autonomous_steering(int fd, uint8_t delta_t, uint8_t sensor_mode, uint16_t error);
+
+#endif
