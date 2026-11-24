@@ -1,10 +1,10 @@
 #include "DistanceSensor.h"
 #include "Odometry.h"
 #include "IMU.h"
-#include "protocol.h"
+#include "../../Common/Logic/uart_definitions.h"
+#include "../../CommunicationsModule/include/protocol.h"
 
 #define F_CPU 16000000UL
-#define BAUD 9600
 #define WHEEL_CIRCUMFERENCE_MM 120      // not measured yet (D-23): prints pulses only
 #define STOP_TIMEOUT_MS 1000          // provisional (D-25)
 #define SENSOR_DEBUG 0					// Readable data in tera term
@@ -21,7 +21,6 @@ int uart_putchar(char c, FILE *stream) {   // print char to stream (UART)
 // define the stream
 static FILE mystdout = FDEV_SETUP_STREAM(uart_putchar, NULL, _FDEV_SETUP_WRITE);
 
-#define PACKET_HEADER       0xAA
 #define PAYLOAD_LENGTH      24
 #define PACKET_LENGTH       27
 
@@ -54,7 +53,7 @@ void send_packet(odometry_sample_t odo, uint16_t dist, imu_sample_t imu)
 	int16_t gyro_z  = (int16_t)imu_gyro_mdps(imu.gz);
 
 	// Header and payload length
-	packet[index++] = PACKET_HEADER;
+	packet[index++] = UART_HEADER_BYTE;
 	packet[index++] = PAYLOAD_LENGTH;
 
 	// packet identifier
@@ -93,8 +92,8 @@ void send_packet(odometry_sample_t odo, uint16_t dist, imu_sample_t imu)
 }
 
 void init_UART() {
-    UBRR0H = (unsigned char) (((F_CPU/16.0/BAUD)-1+0.5)/256);
-    UBRR0L = (unsigned char) ((F_CPU/16.0/BAUD)-1+0.5); 
+    UBRR0H = (unsigned char) (((F_CPU/16.0/BAUD_RATE)-1+0.5)/256);
+    UBRR0L = (unsigned char) ((F_CPU/16.0/BAUD_RATE)-1+0.5); 
     UCSR0B = (1<<TXEN0);                    // Enable TX
     UCSR0C = (1<<UCSZ01)|(1<<UCSZ00);       // 8-bits,no parity, 1 stop bit
 }
