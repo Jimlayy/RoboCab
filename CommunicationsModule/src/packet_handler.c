@@ -11,6 +11,13 @@
 static uint16_t get_u16(const uint8_t *p) { return (uint16_t)(p[0] | (p[1] << 8)); }
 static int16_t  get_i16(const uint8_t *p) { return (int16_t)get_u16(p); }
 
+// Assemble four bytes into a 32-bit number (little-endian: low byte first)
+static uint32_t get_u32(const uint8_t *p)
+{
+    return (uint32_t)p[0]         | ((uint32_t)p[1] << 8) |
+          ((uint32_t)p[2] << 16)  | ((uint32_t)p[3] << 24);
+}
+
 // Split a 16-bit number into two bytes (little-endian: low byte first)
 static void put_u16(uint8_t *p, uint16_t v) { p[0] = v & 0xFF; p[1] = v >> 8; }
 
@@ -33,9 +40,9 @@ void save_packet(const uint8_t *data, uint8_t len)
         s.odo_right_pulse       = get_u32(&data[7]);
         s.odo_left_tslp         = get_u32(&data[11]);
         s.odo_right_tslp        = get_u32(&data[15]); 
-        s.accel_x               = get_i16(&data[17]);
-        s.gyro_z                = get_i16(&data[19]);
-        s.imu_ok                = data[20];
+        s.accel_x               = get_i16(&data[19]);
+        s.gyro_z                = get_i16(&data[21]);
+        s.imu_ok                = data[23];
         clock_gettime(CLOCK_MONOTONIC, &s.timestamp);
         sensor_data_update(&s);
         break;
