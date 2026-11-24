@@ -19,7 +19,7 @@ static void debug_print_sensor_data(void)
 {
     static struct timespec last_ts = {0};
     sensor_data_t s;
-    sensor_data_get(&s);   // <-- rename to your getter
+    get_sensor_data(&s);   // <-- rename to your getter
 
     // Only print when a new packet has been saved since the last print
     if (s.timestamp.tv_sec == last_ts.tv_sec &&

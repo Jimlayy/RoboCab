@@ -74,10 +74,10 @@ int send_packet(int fd, const uint8_t *data, uint8_t len)
     frame[2 + len] = checksum;
 
 
-    printf("[uart] frame (%u):", len + 3);
-    for (size_t i = 0; i < (size_t)len + 3; i++)
-        printf(" %02X", frame[i]);
-    printf("\n");
+//    printf("[uart] frame (%u):", len + 3);
+  //  for (size_t i = 0; i < (size_t)len + 3; i++)
+    //    printf(" %02X", frame[i]);
+    //printf("\n");
 
 
     return write_all(fd, frame, (size_t)len + 3);
