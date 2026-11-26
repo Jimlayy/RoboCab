@@ -13,6 +13,7 @@ void uart_init(){
     UCSR1C = (1<<UCSZ11)|(1<<UCSZ10);       // 8-bits,no parity, 1 stop bit
 
     /*Enable receiver and reciever interrupt */
+    UCSR0A = (1 << U2X0);
     UCSR0B = (1<<RXCIE0)|(1<<RXEN0);
     /* Set frame format: 8data, 1stop bit */
     UCSR0C = (3<<UCSZ00);

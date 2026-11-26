@@ -44,7 +44,6 @@ void init_servo(){
 	// prescaler = 8;
 	TCCR1A |= (1 << COM1A1) | (1 << WGM11);
 	TCCR1B |= (1 << WGM13) | (1 << WGM12) | (1 << CS11); 	 
-		
 	ICR1 = SERVO_TOP_50HZ;	// TOP-value (will generate 50 Hz signal)
 	motor_servo_data.servo_pulse_width = SERVO_START_PULSE_WIDTH;
 	OCR1A = motor_servo_data.servo_pulse_width;
@@ -104,7 +103,7 @@ void run_new_pid(){
 void set_motor_servo_params(){
 	if (motor_servo_data.new_data_is_ready){
 		motor_servo_data.new_data_is_ready = 0;
-		PORTB = (PORTB & ~((1 << PB2) | (1 << PB1))) | (motor_servo_data.motor_brake << PB2) | (motor_servo_data.motor_dir << PB1);	// store direction in PORTB[1] and brake in PORTB[2]
+		PORTB = (PORTB & ~((1 << PB2) | (1 << PB1))) | (motor_servo_data.motor_brake << PB2) | (!motor_servo_data.motor_dir << PB1);	// store direction in PORTB[1] and brake in PORTB[2]
 		OCR0A = motor_servo_data.motor_speed;
 		OCR1A = motor_servo_data.servo_pulse_width;
 	}
@@ -119,12 +118,14 @@ void dispatch_data(const uint8_t *payload, uint8_t payload_length){
         motor_servo_data.motor_brake = payload[MOTOR_BRAKE_IDX];
         motor_servo_data.motor_speed = payload[MOTOR_SPEED_IDX];
 
-        if (((uint16_t)payload[SERVO_PULSE_WIDTH_HB_IDX] << 8) + payload[SERVO_PULSE_WIDTH_LB_IDX] < SERVO_PULSE_WIDTH_MIN) {
+        uint16_t servo_pw_w_offset = (uint16_t)((payload[SERVO_PULSE_WIDTH_HB_IDX] << 8) + payload[SERVO_PULSE_WIDTH_LB_IDX]) + SERVO_TRIM_OFFSET;
+
+        if (servo_pw_w_offset < SERVO_PULSE_WIDTH_MIN) {
             motor_servo_data.servo_pulse_width = SERVO_PULSE_WIDTH_MIN;
-        } else if (((uint16_t)payload[SERVO_PULSE_WIDTH_HB_IDX] << 8) + payload[SERVO_PULSE_WIDTH_LB_IDX] > SERVO_PULSE_WIDTH_MAX){
+        } else if (servo_pw_w_offset > SERVO_PULSE_WIDTH_MAX){
             motor_servo_data.servo_pulse_width = SERVO_PULSE_WIDTH_MAX;
         } else {
-            motor_servo_data.servo_pulse_width = (payload[SERVO_PULSE_WIDTH_HB_IDX] << 8) | payload[SERVO_PULSE_WIDTH_LB_IDX];
+            motor_servo_data.servo_pulse_width = servo_pw_w_offset;
         }
 
         printf("Motor Direction: %u\n", motor_servo_data.motor_dir);

@@ -29,19 +29,19 @@ int main(void) {
 		while (uart_read_available(rx_head, rx_tail)){
 			uint8_t byte = read_uart_byte(&rx_tail, rx_recieve_buffer);	
 			message_id = parser_feed(&uart_parser, byte);
-		}
 
-		if (message_id >= 0) {
-			switch (message_id)
-			{
-			case MOTOR_SERVO_MSG_ID:
-				set_motor_servo_params();
+			if (message_id >= 0) {
+				switch (message_id)
+				{
+				case MOTOR_SERVO_MSG_ID:
+					set_motor_servo_params();
+					break;
+				case PID_DATA_MSG_ID:
+					run_new_pid();
 				break;
-			case PID_DATA_MSG_ID:
-				run_new_pid();
-			break;
-			default:
-				break;
+				default:
+					break;
+				}
 			}
 		}
 	}

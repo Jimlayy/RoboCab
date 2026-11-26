@@ -3,15 +3,14 @@
 #include "uart_definitions.h"
 #include <stdbool.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <avr/io.h>
 
 //UART
+#define MYUBBR ((F_CPU / 8UL + BAUD_RATE / 2) / BAUD_RATE - 1)
+#define MESSAGE_ID_IDX 0
+
 void init_custom_stdout();
 int uart_putchar(char c, FILE *stream);
-
-#define MYUBBR ((F_CPU / 16 + BAUD_RATE / 2) / BAUD_RATE - 1)
-#define MESSAGE_ID_IDX 0
 
 typedef enum {
     MOTOR_SERVO_MSG_ID = 1,
@@ -20,12 +19,24 @@ typedef enum {
 } MESSAGE_IDS;
 
 //PWM
+#define SERVO_PW_TIME_MS_MIN 1
+#define SERVO_PW_TIME_MS_MAX 2
 #define SERVO_FREQ 50
 #define SERVO_PRESCALER 8
-#define SERVO_TOP_50HZ (F_CPU / (SERVO_FREQ * SERVO_PRESCALER) - 1)    
-#define SERVO_START_PULSE_WIDTH 1500    // 1500 ticks (1 tick per microsecond => 1.5 ms)
-#define SERVO_PULSE_WIDTH_MIN 1000
-#define SERVO_PULSE_WIDTH_MAX 2000
+#define SERVO_TOP_50HZ (F_CPU / (SERVO_FREQ * SERVO_PRESCALER) - 1) 
+
+// Raw (un-trimmed) tick limits
+#define SERVO_RAW_MIN ((SERVO_PW_TIME_MS_MIN * (uint32_t)F_CPU) / (1000UL * SERVO_PRESCALER))
+#define SERVO_RAW_MAX ((SERVO_PW_TIME_MS_MAX * (uint32_t)F_CPU) / (1000UL * SERVO_PRESCALER))
+#define SERVO_SPAN    (SERVO_RAW_MAX - SERVO_RAW_MIN)
+
+// Signed trim percentage (-50 to +50) — scales automatically with clock & prescaler
+#define SERVO_TRIM_PERCENT 15
+#define SERVO_TRIM_OFFSET  ((int32_t)SERVO_SPAN * SERVO_TRIM_PERCENT / 100)
+
+#define SERVO_PULSE_WIDTH_MIN   (SERVO_RAW_MIN + SERVO_TRIM_OFFSET)
+#define SERVO_PULSE_WIDTH_MAX   (SERVO_RAW_MAX + SERVO_TRIM_OFFSET)
+#define SERVO_START_PULSE_WIDTH (SERVO_PULSE_WIDTH_MIN + (SERVO_SPAN) / 2) 
 
 //PID
 #define SHIFT_SCALER_Q_PID 21
