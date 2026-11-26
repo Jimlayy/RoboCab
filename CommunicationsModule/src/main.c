@@ -18,8 +18,8 @@
 #include "command.h"
 #include "calculation_thread.h"
 
-#define SENSOR_DEVICE   "/dev/ttyUSB2"
-#define STEERING_DEVICE "/dev/ttyUSB3"
+#define SENSOR_DEVICE   "/dev/ttyUSB0"
+#define STEERING_DEVICE "/dev/ttyUSB1"
 
 
 /* Set to 0 to make every loop in the program stop. */
